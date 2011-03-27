@@ -1,0 +1,18 @@
+Source: camera-ui
+Section: misc
+Priority: extra
+Maintainer: Nicolai Hess <nicolaihess@web.de>
+Build-Depends: debhelper (>= 5), libgtk2.0-dev, libhildon1-dev, libdbus-1-dev, libgconf2-dev, libosso-dev, libgdigicam-dev, libgdigicam-gst-camerabin-dev
+Standards-Version: 3.7.2
+
+Package: camera-ui
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, policy-l10n-mr | policy-l10n-mr0, hildon-status-bar-usb-l10n-mr | hildon-status-bar-usb-l10n-mr0, osso-camera-ui-l10n-mr0 | osso-camera-ui-l10n-mr, hildon-fm-l10n-mr0 | hildon-fm-l10n-mr, hildon-common-strings-l10n-mr0 | hildon-common-strings-l10n-mr, hildon-libs-l10n-mr0 | hildon-libs-l10n-mr, hildon-common-strings-l10n-mr0 | hildon-common-strings-l10n-mr, hildon-libs-l10n-mr0 | hildon-libs-l10n-mr, profile-data, hildon-status-bar-usb-l10n-mr | hildon-status-bar-usb-l10n-mr0, policy-l10n-mr | policy-l10n-mr0
+Description: Camera UI application
+ camera-ui is an application intended to work as a modern digital
+ camera, taking high resolution pictures and recording video.
+ .
+ This package contains the binaries for the Camera UI application
+ .
+ Open source clone developed by Nicolai Hess
+XSBC-Bugtracker: mailto:nicolaihess@web.de
