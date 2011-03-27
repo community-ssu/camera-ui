@@ -24,9 +24,9 @@
 #include <mce/dbus-names.h>
 #include <hildon-mime.h>
 
-#define COM_NOKIA_CAMERAUI2_SERVICE "com.nokia.cameraui2"
-#define COM_NOKIA_CAMERAUI2_PATH "com/nokia/cameraui2"
-#define COM_NOKIA_CAMERAUI2_IF "com.nokia.cameraui2"
+#define COM_NOKIA_CAMERAUI2_SERVICE "com.nokia.cameraui"
+#define COM_NOKIA_CAMERAUI2_PATH "com/nokia/cameraui"
+#define COM_NOKIA_CAMERAUI2_IF "com.nokia.cameraui"
 
 #define OFH_SERVICE "org.freedesktop.Hal"
 #define OFH_CAM_SHUTTER_PATH "/org/freedesktop/Hal/devices/platform_cam_shutter"

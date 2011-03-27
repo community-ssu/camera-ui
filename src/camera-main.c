@@ -7,7 +7,7 @@
 #include <locale.h>
 #include <libgnomevfs/gnome-vfs.h>
 
-#define OSSO_SERVICE "com.nokia.cameraui2"
+#define OSSO_SERVICE "com.nokia.cameraui"
 #define VERSION "0.0.1"
 
 typedef struct _AppData AppData;
