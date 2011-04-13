@@ -91,7 +91,7 @@ show_capture_timer_dialog()
     else if(index == 2)
       ret = 10;
     else if(index == 3)
-      ret = 10;
+      ret = 15;
     else if(index == 4)
       ret = 20;
   }
@@ -113,9 +113,9 @@ show_app_settings_dialog(AppSettings* app_settings)
   GtkWidget* hide_on_lenscover_close_button = hildon_check_button_new(HILDON_SIZE_FINGER_HEIGHT);
   GtkWidget* show_on_focus_button_press_button = hildon_check_button_new(HILDON_SIZE_FINGER_HEIGHT);
 
-  gtk_button_set_label(GTK_BUTTON(show_on_lenscover_open_button), "Show on Lenscover open");
-  gtk_button_set_label(GTK_BUTTON(hide_on_lenscover_close_button), "Hide on Lenscover close");
-  gtk_button_set_label(GTK_BUTTON(show_on_focus_button_press_button), "Show on Focusbutton press");
+  gtk_button_set_label(GTK_BUTTON(show_on_lenscover_open_button), "Show on lenscover open");
+  gtk_button_set_label(GTK_BUTTON(hide_on_lenscover_close_button), "Hide on lenscover close");
+  gtk_button_set_label(GTK_BUTTON(show_on_focus_button_press_button), "Show on focusbutton press");
 
   hildon_check_button_set_active(HILDON_CHECK_BUTTON(show_on_lenscover_open_button), app_settings->show_on_lenscover_open);
   hildon_check_button_set_active(HILDON_CHECK_BUTTON(hide_on_lenscover_close_button), app_settings->hide_on_lenscover_close);
