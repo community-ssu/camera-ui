@@ -130,9 +130,12 @@ storage_helper_free_space(CamStorageDevice storage_device)
     gnome_vfs_uri_new(volume_path);
   g_free(volume_path);
 
-  GnomeVFSResult ret = 
-    gnome_vfs_get_volume_free_space(volume_uri,
-				    &size);
-  gnome_vfs_uri_unref(volume_uri);
+  if (volume_uri != NULL)
+  {
+    GnomeVFSResult ret = 
+      gnome_vfs_get_volume_free_space(volume_uri,
+				      &size);
+    gnome_vfs_uri_unref(volume_uri);
+  }
   return size;
 }
