@@ -33,6 +33,7 @@
 #include <gdigicam/gdigicam-manager.h>
 #include <glib/gstdio.h>
 #include "pmdw.h"
+#include <mce/dbus-names.h>
 
 struct _CameraUI2WindowPrivate
 {
@@ -114,6 +115,7 @@ struct _CameraUI2WindowPrivate
   guint recording_time;
   capture_data_t ccapture_data;  
   gboolean lenscover_open;
+  DBusConnection *sysbus_conn;
 };
 
 #define CAMERA_UI2_WINDOW_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), CAMERA_UI2_TYPE_WINDOW, CameraUI2WindowPrivate))
@@ -611,6 +613,57 @@ _countdown_capture_timer(CameraUI2Window* self)
 }
 
 static void
+_prevent_display_blanking (CameraUI2Window* self)
+{
+  DBusMessage *msg;
+  dbus_bool_t b;
+
+  if (self->priv->sysbus_conn == NULL) {
+    g_warning ("%s: no D-Bus system bus connection", __func__);
+    return;
+  }
+  msg = dbus_message_new_method_call(MCE_SERVICE, MCE_REQUEST_PATH,
+                                     MCE_REQUEST_IF, MCE_PREVENT_BLANK_REQ);
+  if (msg == NULL) {
+    g_warning ("%s: could not create message", __func__);
+    return;
+  }
+
+  b = dbus_connection_send(self->priv->sysbus_conn, msg, NULL);
+  if (!b) {
+    g_warning ("%s: dbus_connection_send() failed", __func__);
+  } else {
+    dbus_connection_flush(self->priv->sysbus_conn);
+  }
+  dbus_message_unref(msg);
+}
+
+static gboolean
+_display_timeout_f (gpointer self)
+{
+  _prevent_display_blanking (self);
+  return TRUE;
+}
+
+static void
+_disable_display_blanking (gboolean disable, CameraUI2Window* self)
+{
+  static guint timeout_f = 0;
+
+  if (disable)
+    {
+      _prevent_display_blanking (self);
+      if (!timeout_f)
+        timeout_f = g_timeout_add (30 * 1000, _display_timeout_f, self);
+    }
+  else if (timeout_f)
+    {
+      g_source_remove (timeout_f);
+      timeout_f = 0;
+    }
+}
+
+static void
 _start_capture_timer(CameraUI2Window* self)
 {
   _remove_capture_timer(self);
@@ -644,6 +697,7 @@ _start_recording(CameraUI2Window* self)
 				   video_state_icon_name(CAM_VIDEO_STATE_PAUSED, FALSE), 
 				   HILDON_ICON_SIZE_FINGER);
       gtk_widget_show_all(self->priv->video_stop_button);
+      _disable_display_blanking (TRUE, self);
       _start_recording_timer(self);
       _activate_recording_ui(self);
     }
@@ -683,6 +737,7 @@ _stop_recording(CameraUI2Window* self)
 {
   if(camera_interface_stop_recording(self->priv->camera_interface))
   {
+    _disable_display_blanking (FALSE, self);
     self->priv->camera_settings.video_state = CAM_VIDEO_STATE_STOPPED;
     self->priv->in_capture_phase = FALSE;
     gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->video_state_image), 
@@ -2352,6 +2407,7 @@ camera_ui2_window_init(CameraUI2Window* self)
   self->priv->focus_label = gtk_label_new("0");
   self->priv->raw_indicator_label = gtk_label_new("RAW");
   self->priv->recording_time_label = gtk_label_new("");
+  self->priv->sysbus_conn = dbus_bus_get (DBUS_BUS_SYSTEM, NULL);
   gtk_label_set_markup(GTK_LABEL(self->priv->recording_time_label), RECORDING_TIME_ZERO_MARKUP);
   _read_gconf_camera_settings(self);
   _set_camera_settings(self);
@@ -2602,6 +2658,7 @@ camera_ui2_window_capture_button_pressed(CameraUI2Window* self)
     if(!_is_topmost_window(self) && !self->priv->disable_show_on_focus_pressed)
     {
       gtk_widget_show(GTK_WIDGET(self));
+      return;
     }
   }
   else
