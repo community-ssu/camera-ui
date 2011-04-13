@@ -1028,13 +1028,11 @@ _on_color_mode_button_release(GtkWidget* widget, GdkEventButton* event, gpointer
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
 
-  gint color_mode = self->priv->camera_settings.color_mode;
-  show_color_mode_selection_dialog(&color_mode);
+  show_color_mode_selection_dialog(&self->priv->camera_settings.color_mode);
   gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->color_mode_image), 
 			       "control_led", HILDON_ICON_SIZE_FINGER);
   
-  self->priv->camera_settings.color_mode = color_mode;
-  camera_interface_set_colour_tone_mode(self->priv->camera_interface, color_mode);
+  camera_interface_set_colour_tone_mode(self->priv->camera_interface, self->priv->camera_settings.color_mode);
   return TRUE;
 }
 
@@ -2573,6 +2571,8 @@ camera_ui2_window_focus_button_pressed(CameraUI2Window* self)
 	  _show_hide_ui(self, FALSE);
       }
     }
+    else if(_is_topmost_window(self->priv->preview_window))
+      gtk_widget_hide(GTK_WIDGET(self->priv->preview_window));
   }
 }
 
