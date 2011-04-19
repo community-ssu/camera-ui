@@ -1394,12 +1394,14 @@ _on_key_released(GtkWidget* widget, GdkEventKey* event, gpointer user_data)
   switch (event->keyval) {
   case GDK_a:
     {
-      _set_scene_mode(self, CAM_SCENE_MODE_AUTO);
+      if(!self->priv->in_capture_phase)
+	_set_scene_mode(self, CAM_SCENE_MODE_AUTO);
       break;
     }
   case GDK_b:
     {
-      if(is_video_mode(self->priv->camera_settings.scene_mode))
+      if(is_video_mode(self->priv->camera_settings.scene_mode) &&
+	 !self->priv->in_capture_phase)
       {
 	_set_video_resolution_size(self, CAM_VIDEO_RESOLUTION_LOW);
 	if(camera_interface_frontcamera_mode(self->priv->camera_interface))
@@ -1412,7 +1414,8 @@ _on_key_released(GtkWidget* widget, GdkEventKey* event, gpointer user_data)
     }
   case GDK_B:
     {
-      if(is_video_mode(self->priv->camera_settings.scene_mode))
+      if(is_video_mode(self->priv->camera_settings.scene_mode) &&
+	 !self->priv->in_capture_phase)
       {
 	if(camera_interface_backcamera_mode(self->priv->camera_interface))
 	{
@@ -1480,7 +1483,7 @@ _on_key_released(GtkWidget* widget, GdkEventKey* event, gpointer user_data)
       {
 	_pause_recording(self);
       }
-      else
+      else if(!self->priv->in_capture_phase)
       {
 	_set_scene_mode(self, CAM_SCENE_MODE_PORTRAIT);
       }
@@ -1488,27 +1491,32 @@ _on_key_released(GtkWidget* widget, GdkEventKey* event, gpointer user_data)
     }
   case GDK_m:
     {
-      _set_scene_mode(self, CAM_SCENE_MODE_MACRO);
+      if(!self->priv->in_capture_phase)
+	_set_scene_mode(self, CAM_SCENE_MODE_MACRO);
       break;
     }
   case GDK_l:
     {
-      _set_scene_mode(self, CAM_SCENE_MODE_LANDSCAPE);
+      if(!self->priv->in_capture_phase)
+	_set_scene_mode(self, CAM_SCENE_MODE_LANDSCAPE);
       break;
     }
   case GDK_n:
     {
-      _set_scene_mode(self, CAM_SCENE_MODE_NIGHT);
+      if(!self->priv->in_capture_phase)
+	_set_scene_mode(self, CAM_SCENE_MODE_NIGHT);
       break;
     }
   case GDK_v:
     {
-      _set_scene_mode(self, CAM_SCENE_MODE_VIDEO);
+      if(!self->priv->in_capture_phase)
+	_set_scene_mode(self, CAM_SCENE_MODE_VIDEO);
       break;
     }
   case GDK_V:
     {
-      _set_scene_mode(self, CAM_SCENE_MODE_NIGHT_VIDEO);
+      if(!self->priv->in_capture_phase)
+	_set_scene_mode(self, CAM_SCENE_MODE_NIGHT_VIDEO);
       break;
     }
   case GDK_i:
