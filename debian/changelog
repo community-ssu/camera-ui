@@ -1,3 +1,11 @@
+camera-ui (1.1.29.2+0cssu2) unstable; urgency=low
+
+  * Use camera key to close preview window.
+  * Check if what gnomevfs returns is NULL, otherwise the app segfaults.
+  * Disable display blanking while recording video.
+
+ -- Mohammad Abu-Garbeyyeh <mohammad7410@gmail.com>  Sun, 17 Apr 2011 03:07:55 +0300
+
 camera-ui (1.1.29.2+0cssu1) unstable; urgency=low
 
   * Initial Release.
