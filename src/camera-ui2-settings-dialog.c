@@ -544,7 +544,7 @@ show_iso_level_selection_dialog(CamIsoLevel* iso_level)
 
   GtkWidget* auto_mode_button =
     _create_radio_button(dgettext("osso-camera-ui", "camera_bd_wb_automatic"),
-			 "camera_auto_mode",
+			 "camera_isoAuto",
 			 (*iso_level) == 0,
 			 NULL);
   GtkWidget* iso_100_button =
@@ -563,10 +563,24 @@ show_iso_level_selection_dialog(CamIsoLevel* iso_level)
 			 (*iso_level) == 3,
 			 iso_200_button);
 
+  GtkWidget* iso_800_button =
+    _create_radio_button(dgettext("osso-camera-ui", "800"),
+			 "camera_iso800",
+			 (*iso_level) == 4,
+			 iso_400_button);
+
+  GtkWidget* iso_1600_button =
+    _create_radio_button(dgettext("osso-camera-ui", "1600"),
+			 "camera_iso1600",
+			 (*iso_level) == 5,
+			 iso_800_button);
+
   gtk_box_pack_start(GTK_BOX(mode_box1), auto_mode_button, TRUE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(mode_box1), iso_200_button, TRUE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(mode_box1), iso_800_button, TRUE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(mode_box2), iso_100_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(mode_box2), iso_400_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(mode_box2), iso_1600_button, FALSE, FALSE, 0);
 
   gtk_box_pack_start(GTK_BOX(hbox), mode_box1, TRUE, TRUE, 0);
   gtk_box_pack_start(GTK_BOX(hbox), mode_box2, TRUE, TRUE, 0);
@@ -576,6 +590,8 @@ show_iso_level_selection_dialog(CamIsoLevel* iso_level)
   g_signal_connect(iso_100_button, "toggled", G_CALLBACK(_close_dialog), dialog);
   g_signal_connect(iso_200_button, "toggled", G_CALLBACK(_close_dialog), dialog);
   g_signal_connect(iso_400_button, "toggled", G_CALLBACK(_close_dialog), dialog);
+  g_signal_connect(iso_800_button, "toggled", G_CALLBACK(_close_dialog), dialog);
+  g_signal_connect(iso_1600_button, "toggled", G_CALLBACK(_close_dialog), dialog);
 
   gtk_window_set_title(GTK_WINDOW(dialog),(dgettext("osso-camera-ui", "camera_ti_iso")));
   gtk_widget_show_all(dialog);
@@ -589,6 +605,10 @@ show_iso_level_selection_dialog(CamIsoLevel* iso_level)
       (*iso_level) = 2;
     else if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(iso_400_button)))
       (*iso_level) = 3;
+    else if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(iso_800_button)))
+      (*iso_level) = 4;
+    else if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(iso_1600_button)))
+      (*iso_level) = 5;
   }
   gtk_widget_destroy(dialog);
 }

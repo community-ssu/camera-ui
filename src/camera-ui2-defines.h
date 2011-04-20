@@ -55,10 +55,12 @@ const gchar* WHITE_BALANCE_NAME[] =
   };
 
 const gchar* ISO_LEVEL_ICON[][2] = 
-  {{"camera_auto_mode", "camera_auto_mode_pressed"},
+  {{"camera_isoAuto", "camera_isoAuto_pressed"},
    {"camera_iso100", "camera_iso100_pressed"},
    {"camera_iso200", "camera_iso200_pressed"},
    {"camera_iso400", "camera_iso400_pressed"},
+   {"camera_iso800", "camera_iso800_pressed"},
+   {"camera_iso1600", "camera_iso1600_pressed"},
   };
 
 const gchar* ISO_LEVEL_NAME[] = 
@@ -66,6 +68,8 @@ const gchar* ISO_LEVEL_NAME[] =
    "camera_bd_iso_100",
    "camera_bd_iso_200",
    "camera_bd_iso_400",
+   "800",
+   "1600",
   };
 
 const gchar* SETTINGS_ICON[2] = 

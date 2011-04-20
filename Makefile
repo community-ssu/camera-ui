@@ -17,6 +17,17 @@ install: all
 	install -m 644 data/com.nokia.camera-ui.service $(DESTDIR)/$(DBUS_SERVICE_DIR)
 	install -d $(DESTDIR)/etc/X11/Xsession.post
 	install -m 644 data/17camera-ui $(DESTDIR)/etc/X11/Xsession.post/
+	install -d $(DESTDIR)/usr/share/icons/hicolor/48x48/hildon
+	install -m 644 data/48x48/camera_iso1600.png $(DESTDIR)/usr/share/icons/hicolor/48x48/hildon/
+	install -m 644 data/48x48/camera_iso800.png $(DESTDIR)/usr/share/icons/hicolor/48x48/hildon/
+	install -m 644 data/48x48/camera_isoAuto.png $(DESTDIR)/usr/share/icons/hicolor/48x48/hildon/
+	install -m 644 data/48x48/camera_iso1600_pressed.png $(DESTDIR)/usr/share/icons/hicolor/48x48/hildon/
+	install -m 644 data/48x48/camera_iso800_pressed.png $(DESTDIR)/usr/share/icons/hicolor/48x48/hildon/
+	install -m 644 data/48x48/camera_isoAuto_pressed.png $(DESTDIR)/usr/share/icons/hicolor/48x48/hildon/
+	install -d $(DESTDIR)/usr/share/icons/hicolor/32x32/hildon
+	install -m 644 data/32x32/camera_iso1600.png $(DESTDIR)/usr/share/icons/hicolor/32x32/hildon/
+	install -m 644 data/32x32/camera_iso800.png $(DESTDIR)/usr/share/icons/hicolor/32x32/hildon/
+	install -m 644 data/32x32/camera_isoAuto.png $(DESTDIR)/usr/share/icons/hicolor/32x32/hildon/
 
 subdirs: $(SUBDIRS)
 
