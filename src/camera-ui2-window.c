@@ -75,7 +75,6 @@ struct _CameraUI2WindowPrivate
   GtkWidget* white_balance_button;
   GtkWidget* white_balance_image;
   GtkWidget* iso_level_button;
-  GtkWidget* iso_level_label;
   GtkWidget* iso_level_image;
   GtkWidget* close_window_button;
   GtkWidget* close_window_image;
@@ -336,31 +335,10 @@ _set_iso_level(CameraUI2Window* self, CamIsoLevel iso_level)
 				    iso_level))
   {
     self->priv->camera_settings.iso_level = iso_level;
-    switch(iso_level)
-    {
-    case CAM_ISO_LEVEL_AUTO:
-    case CAM_ISO_LEVEL_100:
-    case CAM_ISO_LEVEL_200:
-    case CAM_ISO_LEVEL_400:
-      {
-	camera_ui2_set_gconf_iso_level(iso_level);
-	gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->iso_level_image), 
-				     iso_level_icon_name(iso_level, FALSE), HILDON_ICON_SIZE_STYLUS);
-	gtk_widget_hide(self->priv->iso_level_label);
-	gtk_widget_show(self->priv->iso_level_image);
-      }
-      break;
-    default:
-      {
-	// Hack to set gdigicam-unsupported ISO_LEVEL
-	if(iso_level==CAM_ISO_LEVEL_800)
-	  gtk_label_set_text(GTK_LABEL(self->priv->iso_level_label),"800");
-	if(iso_level==CAM_ISO_LEVEL_1600)
-	  gtk_label_set_text(GTK_LABEL(self->priv->iso_level_label),"1600");
-	gtk_widget_hide(self->priv->iso_level_image);
-	gtk_widget_show(self->priv->iso_level_label);
-      }  
-    }
+    camera_ui2_set_gconf_iso_level(iso_level);
+    gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->iso_level_image), 
+				 iso_level_icon_name(iso_level, FALSE), HILDON_ICON_SIZE_STYLUS);
+    gtk_widget_show(self->priv->iso_level_image);
   }
 }
 
@@ -2018,18 +1996,10 @@ _init_iso_level_button(CameraUI2Window* self)
   gint iso_level = self->priv->camera_settings.iso_level;
   self->priv->iso_level_image = 
     gtk_image_new_from_icon_name(iso_level_icon_name(iso_level, FALSE), HILDON_ICON_SIZE_STYLUS);
-  self->priv->iso_level_label = gtk_label_new(""); 
-  GtkWidget* iso_box = gtk_hbox_new(FALSE,0);
-
-  gtk_box_pack_start(GTK_BOX(iso_box),
-		    self->priv->iso_level_label,FALSE,FALSE,0);
-
-  gtk_box_pack_start(GTK_BOX(iso_box),
-		    self->priv->iso_level_image,FALSE,FALSE,0);
-
-   gtk_container_add(GTK_CONTAINER(self->priv->iso_level_button),
-		    iso_box);
-
+  
+  gtk_container_add(GTK_CONTAINER(self->priv->iso_level_button),
+		    self->priv->iso_level_image);
+  
   g_signal_connect(GTK_CONTAINER(self->priv->iso_level_button), 
 		   "button-press-event", 
 		   G_CALLBACK(_on_iso_level_button_press),
