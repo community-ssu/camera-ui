@@ -39,6 +39,7 @@ typedef struct _AppSettings
   gboolean show_on_lenscover_open;
   gboolean hide_on_lenscover_close;
   gboolean show_on_focus_button_press;
+  gboolean enable_sound_effects;
 } AppSettings;
 
 typedef struct _CameraSettings CameraSettings;

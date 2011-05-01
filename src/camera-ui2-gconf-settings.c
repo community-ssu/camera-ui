@@ -38,6 +38,7 @@
 #define GC_EXTRA_SHOW_ON_LENSCOVER_KEY "/apps/camera/settings/extra-settings/disable-show-on-lenscover-open"
 #define GC_EXTRA_HIDE_ON_LENSCOVER_KEY "/apps/camera/settings/extra-settings/disable-hide-on-lenscover-close"
 #define GC_EXTRA_SHOW_ON_FOCUS_PRESSED_KEY "/apps/camera/settings/extra-settings/disable-show-on-focus-pressed"
+#define GC_EXTRA_ENABLED_SOUND_EFFECTS "/apps/camera/settings/extra-settings/enable-sound-effects"
 
 #define GC_MMC_PRESENT_KEY "/system/osso/af/mmc-device-present"
 #define GC_MMC_USED_KEY "/system/osso/af/mmc-used-over-usb"
@@ -370,10 +371,11 @@ camera_ui2_get_gconf_show_on_lenscover_open()
   GConfClient* client = gconf_client_get_default();
   g_assert(GCONF_IS_CLIENT(client));
   gboolean ret = gconf_client_get_bool(client, GC_EXTRA_SHOW_ON_LENSCOVER_KEY, NULL);
+  g_object_unref(client);
   return ret;
 }
 
-gboolean
+void
 camera_ui2_set_gconf_show_on_lenscover_open(gboolean disable)
 {
   GConfClient* client = gconf_client_get_default();
@@ -388,10 +390,11 @@ camera_ui2_get_gconf_hide_on_lenscover_close()
   GConfClient* client = gconf_client_get_default();
   g_assert(GCONF_IS_CLIENT(client));
   gboolean ret = gconf_client_get_bool(client, GC_EXTRA_HIDE_ON_LENSCOVER_KEY, NULL);
+  g_object_unref(client);
   return ret;
 }
 
-gboolean
+void
 camera_ui2_set_gconf_hide_on_lenscover_close(gboolean disable)
 {
   GConfClient* client = gconf_client_get_default();
@@ -406,14 +409,34 @@ camera_ui2_get_gconf_show_on_focus_pressed()
   GConfClient* client = gconf_client_get_default();
   g_assert(GCONF_IS_CLIENT(client));
   gboolean ret = gconf_client_get_bool(client, GC_EXTRA_SHOW_ON_FOCUS_PRESSED_KEY, NULL);
+  g_object_unref(client);
   return ret;
 }
 
-gboolean
+void
 camera_ui2_set_gconf_show_on_focus_pressed(gboolean disable)
 {
   GConfClient* client = gconf_client_get_default();
   g_assert(GCONF_IS_CLIENT(client));
   gconf_client_set_bool(client, GC_EXTRA_SHOW_ON_FOCUS_PRESSED_KEY, disable, NULL);
+  g_object_unref(client);
+}
+
+gboolean
+camera_ui2_get_gconf_enabled_sound_effects()
+{
+  GConfClient* client = gconf_client_get_default();
+  g_assert(GCONF_IS_CLIENT(client));
+  gboolean ret = gconf_client_get_bool(client, GC_EXTRA_ENABLED_SOUND_EFFECTS, NULL);
+  g_object_unref(client);
+  return ret;
+}
+
+void
+camera_ui2_set_gconf_enabled_sound_effects(gboolean enabled)
+{
+  GConfClient* client = gconf_client_get_default();
+  g_assert(GCONF_IS_CLIENT(client));
+  gconf_client_set_bool(client, GC_EXTRA_ENABLED_SOUND_EFFECTS, enabled, NULL);
   g_object_unref(client);
 }

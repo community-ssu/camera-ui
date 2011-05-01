@@ -107,23 +107,26 @@ show_app_settings_dialog(AppSettings* app_settings)
 						  GTK_DIALOG_MODAL | GTK_DIALOG_NO_SEPARATOR,
 						  dgettext("hildon-libs", "wdgt_bd_save"), GTK_RESPONSE_OK,
 						  NULL);
-  GtkWidget* table_layout = gtk_table_new(3, 1, TRUE);
+  GtkWidget* table_layout = gtk_table_new(4, 1, TRUE);
 
   GtkWidget* show_on_lenscover_open_button = hildon_check_button_new(HILDON_SIZE_FINGER_HEIGHT);
   GtkWidget* hide_on_lenscover_close_button = hildon_check_button_new(HILDON_SIZE_FINGER_HEIGHT);
   GtkWidget* show_on_focus_button_press_button = hildon_check_button_new(HILDON_SIZE_FINGER_HEIGHT);
+  GtkWidget* enable_sound_effects_button = hildon_check_button_new(HILDON_SIZE_FINGER_HEIGHT);
 
   gtk_button_set_label(GTK_BUTTON(show_on_lenscover_open_button), "Show on lenscover open");
   gtk_button_set_label(GTK_BUTTON(hide_on_lenscover_close_button), "Hide on lenscover close");
   gtk_button_set_label(GTK_BUTTON(show_on_focus_button_press_button), "Show on focusbutton press");
+  gtk_button_set_label(GTK_BUTTON(enable_sound_effects_button), "Enable sound effects");
 
   hildon_check_button_set_active(HILDON_CHECK_BUTTON(show_on_lenscover_open_button), app_settings->show_on_lenscover_open);
   hildon_check_button_set_active(HILDON_CHECK_BUTTON(hide_on_lenscover_close_button), app_settings->hide_on_lenscover_close);
   hildon_check_button_set_active(HILDON_CHECK_BUTTON(show_on_focus_button_press_button), app_settings->show_on_focus_button_press);
-
+  hildon_check_button_set_active(HILDON_CHECK_BUTTON(enable_sound_effects_button), app_settings->enable_sound_effects);
   gtk_table_attach_defaults(GTK_TABLE(table_layout), show_on_lenscover_open_button, 0, 1, 0, 1);
   gtk_table_attach_defaults(GTK_TABLE(table_layout), hide_on_lenscover_close_button, 0, 1, 1, 2);
   gtk_table_attach_defaults(GTK_TABLE(table_layout), show_on_focus_button_press_button, 0, 1, 2, 3);
+  gtk_table_attach_defaults(GTK_TABLE(table_layout), enable_sound_effects_button, 0, 1, 3, 4);
   gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), table_layout, TRUE, TRUE, 0);
   gtk_widget_show_all(dialog);
 
@@ -132,6 +135,7 @@ show_app_settings_dialog(AppSettings* app_settings)
     app_settings->show_on_lenscover_open = hildon_check_button_get_active(HILDON_CHECK_BUTTON(show_on_lenscover_open_button));
     app_settings->hide_on_lenscover_close = hildon_check_button_get_active(HILDON_CHECK_BUTTON(hide_on_lenscover_close_button));
     app_settings->show_on_focus_button_press = hildon_check_button_get_active(HILDON_CHECK_BUTTON(show_on_focus_button_press_button));
+    app_settings->enable_sound_effects = hildon_check_button_get_active(HILDON_CHECK_BUTTON(enable_sound_effects_button));
   }
   gtk_widget_destroy(dialog);
 }

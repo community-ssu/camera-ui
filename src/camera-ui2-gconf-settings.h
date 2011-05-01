@@ -104,19 +104,25 @@ camera_ui2_get_gconf_device_id();
 gboolean
 camera_ui2_get_gconf_show_on_lenscover_open();
 
-gboolean
+void
 camera_ui2_set_gconf_show_on_lenscover_open(gboolean enable);
 
 gboolean
 camera_ui2_get_gconf_hide_on_lenscover_close();
 
-gboolean
+void
 camera_ui2_set_gconf_hide_on_lenscover_close(gboolean enable);
 
 gboolean
 camera_ui2_get_gconf_show_on_focus_pressed();
 
-gboolean
+void
 camera_ui2_set_gconf_show_on_focus_pressed(gboolean enable);
+
+gboolean
+camera_ui2_get_gconf_enabled_sound_effects();
+
+void
+camera_ui2_set_gconf_enabled_sound_effects(gboolean enable);
 
 #endif

@@ -30,6 +30,7 @@
 #include "dbus-helper.h"
 #include "geotagging-helper.h"
 #include "storage-helper.h"
+#include "sound-helper.h"
 #include <gdigicam/gdigicam-manager.h>
 #include <glib/gstdio.h>
 #include "pmdw.h"
@@ -102,10 +103,12 @@ struct _CameraUI2WindowPrivate
   gboolean disable_show_on_lenscover_open;
   gboolean disable_hide_on_lenscover_close;
   gboolean disable_show_on_focus_pressed;
+  gboolean with_sound_effects;
   CameraSettings camera_settings;
   CameraInterface* camera_interface;
   GeotaggingHelper* geotagging_helper;
   GeotaggingSettings geotagging_settings;
+  SoundPlayerHelper* sound_player;
   Camera cam;
   guint delayed_focus_timer;
   guint capture_timer;
@@ -503,6 +506,8 @@ _capture_image(CameraUI2Window* self)
 {
   if(_set_ccapture_data(self))
   {
+    if(self->priv->with_sound_effects)
+      sound_player_capture_sound(self->priv->sound_player);
     if(camera_interface_capture_image(self->priv->camera_interface, self->priv->ccapture_data))
     {
       camera_ui2_increment_gconf_last_media_id();
@@ -666,6 +671,8 @@ static void
 _start_recording(CameraUI2Window* self)
 {
   if(_set_ccapture_data(self))
+  {
+    sound_player_start_recording_sound(self->priv->sound_player);
     if(camera_interface_start_recording(self->priv->camera_interface, self->priv->ccapture_data))
     {
       camera_ui2_increment_gconf_last_media_id();
@@ -679,6 +686,7 @@ _start_recording(CameraUI2Window* self)
       _start_recording_timer(self);
       _activate_recording_ui(self);
     }
+  }
 }
 
 static void
@@ -728,6 +736,7 @@ _stop_recording(CameraUI2Window* self)
     }
     gtk_widget_hide(self->priv->video_stop_button);
     _activate_scene_mode_ui(self);
+    self->priv->recording_time = 0;
     gtk_label_set_markup(GTK_LABEL(self->priv->recording_time_label), 
                          RECORDING_TIME_ZERO_MARKUP);
   }
@@ -757,7 +766,8 @@ _on_scene_mode_button_release(GtkWidget* widget, GdkEventButton* event, gpointer
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   CamSceneMode scene_mode = self->priv->camera_settings.scene_mode;
-  show_scene_mode_selection_dialog(&scene_mode);
+  if(event->x >= 0 && event->y >= 0 && event->x < 64 && event->y < 64)
+    show_scene_mode_selection_dialog(&scene_mode);
   if(scene_mode != self->priv->camera_settings.scene_mode)
   {
     _set_scene_mode(self, scene_mode);
@@ -786,7 +796,8 @@ _on_flash_mode_button_release(GtkWidget* widget, GdkEventButton* event, gpointer
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
 
   CamFlashMode flash_mode = self->priv->camera_settings.flash_mode;
-  show_flash_mode_selection_dialog(&flash_mode);
+  if(event->x >= 0 && event->y >= 0 && event->x < 64 && event->y < 64)
+    show_flash_mode_selection_dialog(&flash_mode);
   if(flash_mode != self->priv->camera_settings.flash_mode)
   {
     _set_flash_mode(self, flash_mode);
@@ -822,11 +833,13 @@ _on_mic_mode_button_release(GtkWidget* widget, GdkEventButton* event, gpointer u
   {
     mic_mode = CAM_VIDEO_MIC_ON;
   }
-  if(camera_interface_set_audio_mode(self->priv->camera_interface,
-				     mic_mode))
-  {
-    self->priv->camera_settings.mic_mode = mic_mode;
-  }
+  if(event->x >= 0 && event->y >= 0 && event->x < 64 && event->y < 64)
+    if(camera_interface_set_audio_mode(self->priv->camera_interface,
+				       mic_mode))
+    {
+      self->priv->camera_settings.mic_mode = mic_mode;
+    }
+
   gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->video_mic_mode_image), 
 			       video_mic_mode_icon_name(self->priv->camera_settings.mic_mode, FALSE), 
 			       HILDON_ICON_SIZE_FINGER);
@@ -848,7 +861,8 @@ _on_white_balance_button_release(GtkWidget* widget, GdkEventButton* event, gpoin
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   CamWhiteBalance white_balance = self->priv->camera_settings.white_balance;
-  show_white_balance_mode_selection_dialog(&white_balance);
+  if(event->x >= 0 && event->y >= 0 && event->x < 64 && event->y < 64)
+    show_white_balance_mode_selection_dialog(&white_balance);
   if(white_balance != self->priv->camera_settings.white_balance)
   {
     _set_white_balance_mode(self, white_balance);
@@ -875,6 +889,8 @@ static gboolean
 _on_video_state_button_release(GtkWidget* widget, GdkEventButton* event, gpointer user_data)
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
+  if(event->x < 0 || event->y < 0 || event->x >= 64 || event->y >= 64)
+    return TRUE;
   if(self->priv->camera_settings.video_state == CAM_VIDEO_STATE_RECORDING)
   {
     _pause_recording(self);
@@ -930,7 +946,8 @@ _on_still_resolution_button_release(GtkWidget* widget, GdkEventButton* event, gp
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   CamStillResolution resolution_size = self->priv->camera_settings.still_resolution_size;
-  show_still_resolution_size_selection_dialog(&resolution_size);
+  if(event->x >= 0 && event->y >= 0 && event->x < 48 && event->y < 48)
+    show_still_resolution_size_selection_dialog(&resolution_size);
   if(resolution_size != self->priv->camera_settings.still_resolution_size)
   {
     _set_still_resolution_size(self, resolution_size);
@@ -975,7 +992,9 @@ _on_video_resolution_button_release(GtkWidget* widget, GdkEventButton* event, gp
   settings.iso_level = self->priv->camera_settings.iso_level;
   settings.exposure_level = self->priv->camera_settings.exposure_level;
   settings.video_resolution_size = self->priv->camera_settings.video_resolution_size;
-  show_video_resolution_size_selection_dialog(&settings);
+
+  if(event->x >= 0 && event->y >= 0 && event->x < 48 && event->y < 48)
+    show_video_resolution_size_selection_dialog(&settings);
 
   if(settings.video_resolution_size != self->priv->camera_settings.video_resolution_size)
   {
@@ -994,8 +1013,10 @@ static gboolean
 _on_image_viewer_button_release(GtkWidget* widget, GdkEventButton* event, gpointer user_data)
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
+
   gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->image_viewer_image), 
 			       "camera_imageviewer", HILDON_ICON_SIZE_FINGER);
+  if(event->x >= 0 && event->y >= 0 && event->x < 64 && event->y < 64)
     dbus_helper_start_image_viewer(self->priv->osso);
   return TRUE;
 }
@@ -1015,7 +1036,8 @@ _on_media_player_button_release(GtkWidget* widget, GdkEventButton* event, gpoint
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->media_player_image), 
 			       "camera_playback", HILDON_ICON_SIZE_FINGER);
-  dbus_helper_start_media_player(self->priv->osso);
+  if(event->x >= 0 && event->y >= 0 && event->x < 64 && event->y < 64)
+    dbus_helper_start_media_player(self->priv->osso);
   return TRUE;
 }
 
@@ -1033,7 +1055,8 @@ _on_iso_level_button_release(GtkWidget* widget, GdkEventButton* event, gpointer 
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   CamIsoLevel iso_level = self->priv->camera_settings.iso_level;
-  show_iso_level_selection_dialog(&iso_level);
+  if(event->x >= 0 && event->y >= 0 && event->x < 48 && event->y < 48)
+    show_iso_level_selection_dialog(&iso_level);
   if(iso_level != self->priv->camera_settings.iso_level)
   {
     _set_iso_level(self, iso_level);
@@ -1060,12 +1083,13 @@ static gboolean
 _on_color_mode_button_release(GtkWidget* widget, GdkEventButton* event, gpointer user_data)
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
-
-  show_color_mode_selection_dialog(&self->priv->camera_settings.color_mode);
-  gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->color_mode_image), 
-			       "control_led", HILDON_ICON_SIZE_FINGER);
-  
-  camera_interface_set_colour_tone_mode(self->priv->camera_interface, self->priv->camera_settings.color_mode);
+  if(event->x >= 0 && event->y >= 0 && event->x < 64 && event->y < 64)
+  {
+    show_color_mode_selection_dialog(&self->priv->camera_settings.color_mode);
+    gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->color_mode_image), 
+				 "control_led", HILDON_ICON_SIZE_FINGER);
+    camera_interface_set_colour_tone_mode(self->priv->camera_interface, self->priv->camera_settings.color_mode);
+  }
   return TRUE;
 }
 
@@ -1081,7 +1105,8 @@ _on_still_settings_button_release(GtkWidget* widget, GdkEventButton* event, gpoi
   settings.exposure_level = self->priv->camera_settings.exposure_level;
   settings.still_resolution_size = self->priv->camera_settings.still_resolution_size;
   
-  show_still_settings_dialog(&settings);
+  if(event->x >= 0 && event->y >= 0 && event->x < 64 && event->y < 64)
+    show_still_settings_dialog(&settings);
   gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->still_settings_image), 
 			       settings_icon_name(FALSE), HILDON_ICON_SIZE_FINGER);
 
@@ -1131,7 +1156,8 @@ _on_storage_button_release(GtkWidget* widget, GdkEventButton* event, gpointer us
   settings.storage_device = self->priv->camera_settings.storage_device;
   settings.preview_mode = self->priv->camera_settings.preview_mode;
   settings.scene_mode = self->priv->camera_settings.scene_mode;
-  show_storage_settings_dialog(&settings);
+  if(event->x >= 0 && event->y >= 0 && event->x < 48 && event->y < 48)
+    show_storage_settings_dialog(&settings);
   gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->storage_image), 
 			       storage_device_icon_name(settings.storage_device, FALSE), 
 			       HILDON_ICON_SIZE_STYLUS);
@@ -1201,12 +1227,16 @@ static gboolean
 _on_still_capture_button_release(GtkWidget* widget, GdkEventButton* event, gpointer user_data)
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
-  if(!is_video_mode(self->priv->camera_settings.scene_mode))
+  if(event->x >= 0 && event->y >= 0 && event->x < 64 && event->y < 64)
   {
-    _capture_image(self);
+    if(!is_video_mode(self->priv->camera_settings.scene_mode))
+    {
+      _capture_image(self);
+    }
   }
   gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->still_capture_image), 
 			       "general_tickmark_unchecked", HILDON_ICON_SIZE_FINGER);
+  return TRUE;
 }
 
 static gboolean
@@ -1224,7 +1254,9 @@ _on_geotagging_button_release(GtkWidget* widget, GdkEventButton* event, gpointer
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   GeoTagMode tag_mode = geotagging_helper_get_mode(self->priv->geotagging_helper);
   
-  show_geotagging_settings_dialog(&tag_mode);
+  if(event->x >= 0 && event->y >= 0 && event->x < 48 && event->y < 48)
+    show_geotagging_settings_dialog(&tag_mode);
+
   if(tag_mode != GEO_TAG_NONE)
   {
     geotagging_helper_run(self->priv->geotagging_helper);
@@ -1248,17 +1280,19 @@ _on_video_settings_button_release(GtkWidget* widget, GdkEventButton* event, gpoi
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   CameraSettings settings;
+  if(event->x < 0 || event->y < 0 || event->x >= 64 || event->y >= 64)
+  {
+    gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->video_settings_image), 
+				 settings_icon_name(FALSE), HILDON_ICON_SIZE_FINGER);
+    return TRUE;
+  }
   settings.scene_mode = self->priv->camera_settings.scene_mode;
   settings.flash_mode = self->priv->camera_settings.flash_mode;
   settings.white_balance = self->priv->camera_settings.white_balance;
   settings.iso_level = self->priv->camera_settings.iso_level;
   settings.exposure_level = self->priv->camera_settings.exposure_level;
   settings.video_resolution_size = self->priv->camera_settings.video_resolution_size;
-  
   show_video_settings_dialog(&settings);
-  gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->video_settings_image), 
-			       settings_icon_name(FALSE), HILDON_ICON_SIZE_FINGER);
-  
   if(settings.video_resolution_size != self->priv->camera_settings.video_resolution_size)
   {
     _set_video_resolution_size(self, settings.video_resolution_size);
@@ -1666,13 +1700,16 @@ _on_general_settings_button_pressed(GtkButton* button, gpointer user_data)
   app_settings.show_on_lenscover_open = !self->priv->disable_show_on_lenscover_open;
   app_settings.hide_on_lenscover_close = !self->priv->disable_hide_on_lenscover_close;
   app_settings.show_on_focus_button_press = !self->priv->disable_show_on_focus_pressed;
+  app_settings.enable_sound_effects = self->priv->with_sound_effects;
   show_app_settings_dialog(&app_settings);
   self->priv->disable_show_on_lenscover_open = !app_settings.show_on_lenscover_open;
   self->priv->disable_hide_on_lenscover_close = !app_settings.hide_on_lenscover_close;
   self->priv->disable_show_on_focus_pressed = !app_settings.show_on_focus_button_press;
+  self->priv->with_sound_effects = app_settings.enable_sound_effects;
   camera_ui2_set_gconf_show_on_lenscover_open(self->priv->disable_show_on_lenscover_open);
   camera_ui2_set_gconf_hide_on_lenscover_close(self->priv->disable_hide_on_lenscover_close);
   camera_ui2_set_gconf_show_on_focus_pressed(self->priv->disable_show_on_focus_pressed);
+  camera_ui2_set_gconf_enabled_sound_effects(self->priv->with_sound_effects);
 }
 
 static void
@@ -2077,6 +2114,7 @@ _read_gconf_camera_settings(CameraUI2Window* self)
   self->priv->disable_show_on_lenscover_open = camera_ui2_get_gconf_show_on_lenscover_open();
   self->priv->disable_hide_on_lenscover_close = camera_ui2_get_gconf_hide_on_lenscover_close();
   self->priv->disable_show_on_focus_pressed = camera_ui2_get_gconf_show_on_focus_pressed();
+  self->priv->with_sound_effects = camera_ui2_get_gconf_enabled_sound_effects();
 }
 
 static void
@@ -2166,6 +2204,8 @@ _on_focus_done(GDigicamManager *digicam_manager,
       gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->crosshair), "camera_crosshair_red", 216);
       break;
     case G_DIGICAM_FOCUSMODESTATUS_REACHED:
+      if(self->priv->with_sound_effects)
+	sound_player_focus_done_sound(self->priv->sound_player);
       gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->crosshair), "camera_crosshair_green", 216);
       break;
     case G_DIGICAM_FOCUSMODESTATUS_REQUEST:
@@ -2275,7 +2315,7 @@ static void
 _init_delayed_focus(CameraUI2Window* self)
 {
   _remove_delayed_focus_timer(self);
-  self->priv->delayed_focus_timer = g_timeout_add(1000,
+  self->priv->delayed_focus_timer = g_timeout_add(500,
 						  (GSourceFunc)_start_delayed_focus,
 						  self);
 }
@@ -2338,6 +2378,9 @@ camera_ui2_window_dispose(GObject* object)
 static void
 camera_ui2_window_finalize(GObject* object)
 {
+  CameraUI2Window* self = CAMERA_UI2_WINDOW(object);
+  if(self->priv->with_sound_effects)
+    sound_player_destroy(self->priv->sound_player);
   G_OBJECT_CLASS(camera_ui2_window_parent_class)->finalize(object);
 }
 
@@ -2362,6 +2405,7 @@ camera_ui2_window_init(CameraUI2Window* self)
   self->priv->disable_show_on_lenscover_open = FALSE;
   self->priv->disable_hide_on_lenscover_close = FALSE;
   self->priv->disable_show_on_focus_pressed = FALSE;
+  self->priv->with_sound_effects = FALSE;
   self->priv->delayed_focus_timer = 0;
   self->priv->capture_timer = 0;
   self->priv->capture_timer_countdown = 0;
@@ -2380,6 +2424,7 @@ camera_ui2_window_init(CameraUI2Window* self)
   self->priv->geotagging_helper = geotagging_helper_create();
   self->priv->geotagging_settings.tag_position = FALSE;
   self->priv->geotagging_settings.tag_location = FALSE;
+  self->priv->sound_player = sound_player_create();
   self->priv->view_finder = gtk_event_box_new();
   self->priv->image_counter_label = gtk_label_new("999");
   self->priv->focus_label = gtk_label_new("0");
@@ -2444,6 +2489,9 @@ camera_ui2_window_init(CameraUI2Window* self)
   gtk_box_pack_start(GTK_BOX(self->priv->bottom_button_box), self->priv->iso_level_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(self->priv->bottom_button_box), self->priv->geotagging_button, FALSE, FALSE, 0);
 
+
+  gtk_box_pack_end(GTK_BOX(self->priv->top_button_box), self->priv->focus_label, FALSE, FALSE, 0);
+
   gtk_box_pack_end(GTK_BOX(self->priv->bottom_button_box), self->priv->recording_time_label, FALSE, FALSE, 0);
   gtk_box_pack_end(GTK_BOX(self->priv->bottom_button_box), self->priv->raw_indicator_label, FALSE, FALSE, 0);
   gtk_misc_set_alignment(GTK_MISC(self->priv->raw_indicator_label), 1, 0.5);
@@ -2468,10 +2516,10 @@ camera_ui2_window_init(CameraUI2Window* self)
   gtk_box_pack_end(GTK_BOX(self->priv->right_button_box), self->priv->right_button_box2, TRUE, TRUE, 0);
 
   gtk_box_pack_start(GTK_BOX(center_box), self->priv->crosshair, TRUE, TRUE, 0);
-  gtk_box_pack_start(GTK_BOX(center_box), self->priv->focus_label, FALSE, FALSE, 0);
+  //  gtk_box_pack_start(GTK_BOX(center_box), self->priv->focus_label, FALSE, FALSE, 0);
 
   gtk_table_attach(GTK_TABLE(root_table), self->priv->bottom_button_box, 0, 2, 2, 3, GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(root_table), self->priv->top_button_box, 0, 2, 0, 1, GTK_EXPAND, GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(root_table), self->priv->top_button_box, 0, 2, 0, 1, GTK_EXPAND | GTK_FILL, GTK_SHRINK, 0, 0);
   _init_view_finder(self);
   
   gtk_container_set_border_width(GTK_CONTAINER(self), 0);
@@ -2605,8 +2653,10 @@ camera_ui2_window_focus_button_pressed(CameraUI2Window* self)
 	  _show_hide_ui(self, FALSE);
       }
     }
-    else if(_is_topmost_window(self->priv->preview_window))
+    if(_is_topmost_window(self->priv->preview_window))
+    {
       gtk_widget_hide(GTK_WIDGET(self->priv->preview_window));
+    }
   }
 }
 

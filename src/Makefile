@@ -8,6 +8,7 @@ SOURCES=camera-main.c\
         geotagging-helper.c\
         storage-helper.c\
         pmdw.c\
+        sound-helper.c\
         camera-ui2-preview-window.c
 
 OBJS=camera-main.o\
@@ -20,12 +21,13 @@ OBJS=camera-main.o\
      dbus-helper.o\
      geotagging-helper.o\
      storage-helper.o\
+     sound-helper.o\
      camera-ui2-preview-window.o
 
 BUILDDIR=../build
 BIN=$(BUILDDIR)/camera-ui
 CC=gcc
-PKG_FLAGS=$(shell pkg-config glib-2.0 hildon-1 libhildondesktop-1 libosso gdigicam-0.3 gdigicam-gst-camerabin-0.3 mce sharingdialog liblocation navigation hal gnome-vfs-2.0 --libs --cflags)
+PKG_FLAGS=$(shell pkg-config glib-2.0 hildon-1 libhildondesktop-1 libosso gdigicam-0.3 gdigicam-gst-camerabin-0.3 mce sharingdialog liblocation navigation hal gnome-vfs-2.0 libcanberra profile --libs --cflags)
 CCFLAGS=-DGST_USE_UNSTABLE_API
 
 all:$(BIN) $(LIB)
