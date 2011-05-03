@@ -135,6 +135,7 @@ G_DEFINE_TYPE(CameraUI2Window, camera_ui2_window, HILDON_TYPE_STACKABLE_WINDOW)
 
 static void _show_hide_ui(CameraUI2Window* self, gboolean show);
 static void _capture_image(CameraUI2Window* self);
+static void _stop_recording(CameraUI2Window* self);
 
 static void
 _remove_delayed_focus_timer(CameraUI2Window* self)
@@ -209,13 +210,11 @@ _is_visible(CameraUI2Window* self)
   return is_visible;
 }
 
-static void
+static int
 _update_remaining_count_indicator(CameraUI2Window* self)
 {
-  GnomeVFSFileSize size = 
-    storage_helper_free_space(self->priv->camera_settings.storage_device);
-  size /= 1024;
-
+  int size = (int)(storage_helper_free_space(self->priv->camera_settings.storage_device) / 1024);
+  size = MAX(size-1024, 0);
   if(is_video_mode(self->priv->camera_settings.scene_mode))
   {
     switch(self->priv->camera_settings.video_resolution_size)
@@ -255,6 +254,7 @@ _update_remaining_count_indicator(CameraUI2Window* self)
     gtk_label_set_text(GTK_LABEL(self->priv->image_counter_label), count_str);
     g_free(count_str);
   }
+  return (int)size;
 }
 
 static gboolean
@@ -268,7 +268,11 @@ _update_recording_timer(CameraUI2Window* self)
     gchar* time_label = g_strdup_printf(RECORDING_TIME_MARKUP_FMT, minutes, seconds);
     gtk_label_set_markup(GTK_LABEL(self->priv->recording_time_label), time_label);
     g_free(time_label);
-    //    _update_remaining_count_indicator(self);
+    if((seconds % 2) == 0 && _update_remaining_count_indicator(self) < 1)
+    {
+      hildon_banner_show_information(NULL, NULL, dgettext("osso-camera-ui", "camera_ib_recording_stopped"));
+      _stop_recording(self);
+    }
     return TRUE;
   }
   return FALSE;
@@ -447,6 +451,11 @@ _set_scene_mode(CameraUI2Window* self, CamSceneMode scene_mode)
 static gboolean
 _set_ccapture_data(CameraUI2Window* self)
 {
+  if(_update_remaining_count_indicator(self)<1)
+  {
+    hildon_banner_show_information(NULL, NULL, dgettext("osso-camera-ui", "camera_ib_out_of_storage"));
+    return FALSE;
+  }
   if(self->priv->ccapture_data.classification_id)
     g_free(self->priv->ccapture_data.classification_id);
 
@@ -667,12 +676,13 @@ _start_capture_timer(CameraUI2Window* self)
 						    self);
 }
 
-static void
+static gboolean
 _start_recording(CameraUI2Window* self)
 {
   if(_set_ccapture_data(self))
   {
-    sound_player_start_recording_sound(self->priv->sound_player);
+    if(self->priv->with_sound_effects)
+      sound_player_start_recording_sound(self->priv->sound_player);
     if(camera_interface_start_recording(self->priv->camera_interface, self->priv->ccapture_data))
     {
       camera_ui2_increment_gconf_last_media_id();
@@ -686,7 +696,9 @@ _start_recording(CameraUI2Window* self)
       _start_recording_timer(self);
       _activate_recording_ui(self);
     }
+    return TRUE;
   }
+  return FALSE;
 }
 
 static void
@@ -721,6 +733,8 @@ _pause_recording(CameraUI2Window* self)
 static void
 _stop_recording(CameraUI2Window* self)
 {
+  if(self->priv->camera_settings.video_state == CAM_VIDEO_STATE_PAUSED)
+    camera_interface_resume_recording(self->priv->camera_interface);
   if(camera_interface_stop_recording(self->priv->camera_interface))
   {
     _disable_display_blanking (FALSE, self);
@@ -897,7 +911,12 @@ _on_video_state_button_release(GtkWidget* widget, GdkEventButton* event, gpointe
   }
   else if(self->priv->camera_settings.video_state == CAM_VIDEO_STATE_STOPPED)
   {
-    _start_recording(self);
+    if(!_start_recording(self))
+    {
+      gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->video_state_image), 
+				   video_state_icon_name(CAM_VIDEO_STATE_RECORDING, FALSE), 
+				   HILDON_ICON_SIZE_FINGER);
+    }
   }
   else if(self->priv->camera_settings.video_state == CAM_VIDEO_STATE_PAUSED)
   {
@@ -2689,7 +2708,7 @@ camera_ui2_window_capture_button_pressed(CameraUI2Window* self)
       return;
     }
   }
-  else
+  else if(_is_topmost_window(self))
   {
     _remove_delayed_focus_timer(self);
     if(!is_video_mode(self->priv->camera_settings.scene_mode))
