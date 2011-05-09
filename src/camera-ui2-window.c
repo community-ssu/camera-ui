@@ -124,7 +124,7 @@ struct _CameraUI2WindowPrivate
 
 
 #define REMAINING_RECORDING_TIME_FMT "% 2d:%02d"
-#define REMAINING_IMAGECOUNT_FMT "% 3llu"
+#define REMAINING_IMAGECOUNT_FMT "% 3d"
 #define RECORDING_TIME_MARKUP_FMT "<span color=\"red\">%02d:%02d</span>"
 #define RECORDING_TIME_ZERO_MARKUP "<span color=\"red\">00:00</span>"
 #define TIMER_COUNTDOWN_FMT "%2d"
@@ -214,7 +214,9 @@ static int
 _update_remaining_count_indicator(CameraUI2Window* self)
 {
   int size = (int)(storage_helper_free_space(self->priv->camera_settings.storage_device) / 1024);
+
   size = MAX(size-1024, 0);
+
   if(is_video_mode(self->priv->camera_settings.scene_mode))
   {
     switch(self->priv->camera_settings.video_resolution_size)
@@ -1507,6 +1509,11 @@ _on_key_released(GtkWidget* widget, GdkEventKey* event, gpointer user_data)
       camera_interface_toggle_light(self->priv->camera_interface);
       break;
     }
+  case GDK_h:
+    {
+      camera_interface_toggle_privacy_light(self->priv->camera_interface);
+      break;
+    }
   case GDK_p:
     {
       if(is_video_mode(self->priv->camera_settings.scene_mode) &&
@@ -1735,6 +1742,7 @@ static void
 _init_preview_window(CameraUI2Window* self)
 {
   self->priv->preview_window = camera_ui2_preview_window_new(self->priv->osso);
+  gtk_window_set_title(GTK_WINDOW(self->priv->preview_window), dgettext("osso-camera-ui", "camera_ap_camera"));
   g_signal_connect(self->priv->preview_window, "hide", G_CALLBACK(&_on_preview_window_hide), self);
 }
 

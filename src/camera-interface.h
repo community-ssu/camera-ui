@@ -128,6 +128,9 @@ void
 camera_interface_toggle_light(CameraInterface* camera_interface);
 
 void
+camera_interface_toggle_privacy_light(CameraInterface* camera_interface);
+
+void
 camera_interface_increase_focus(CameraInterface* camera_interface, gint value);
 
 void

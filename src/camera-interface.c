@@ -1120,6 +1120,20 @@ camera_interface_toggle_light(CameraInterface* camera_interface)
   }
 }
 
+void
+camera_interface_toggle_privacy_light(CameraInterface* camera_interface)
+{
+  if(camera_interface->video_fd != -1)
+  {
+    struct v4l2_control control;
+    memset(&control, 0, sizeof(control));
+    control.id = V4L2_CID_INDICATOR_INTENSITY;
+    ioctl(camera_interface->video_fd, VIDIOC_G_CTRL, &control);
+    control.value = !control.value;
+    ioctl(camera_interface->video_fd, VIDIOC_S_CTRL, &control);
+  }
+}
+
 gint
 camera_interface_get_focus(CameraInterface* camera_interface)
 {
