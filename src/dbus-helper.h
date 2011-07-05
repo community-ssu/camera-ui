@@ -46,6 +46,9 @@ dbus_helper_start_media_player(osso_context_t* osso);
 gint
 dbus_helper_get_device_orientation_mode(osso_context_t* osso);
 
+gint
+dbus_helper_get_device_locked(osso_context_t* osso);
+
 gboolean
 dbus_helper_register_hal_cam_property(LibHalContext* hal_context);
 

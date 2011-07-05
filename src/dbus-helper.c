@@ -187,6 +187,29 @@ dbus_helper_get_device_orientation_mode(osso_context_t* osso)
   return mode;
 }
 
+gboolean
+dbus_helper_get_device_locked(osso_context_t* osso)
+{
+  osso_return_t ret;
+  osso_rpc_t return_value;
+  ret = osso_rpc_run_system(osso,
+			    MCE_SERVICE, MCE_REQUEST_PATH, MCE_REQUEST_IF,
+			    MCE_TKLOCK_MODE_GET,
+			    &return_value,
+			    DBUS_TYPE_INVALID);
+  gboolean mode = FALSE;
+  if(ret == OSSO_OK)
+  {
+    g_warning("lock mode %s\n",return_value.value.s);
+    if(g_strcmp0(return_value.value.s, MCE_TK_LOCKED) == 0)
+    {
+      mode = TRUE;
+    }
+    osso_rpc_free_val(&return_value);
+  }
+  return mode;
+}
+
 static gint 
 top_camera_ui2_application(const gchar* interface, 
 			   const gchar* method,

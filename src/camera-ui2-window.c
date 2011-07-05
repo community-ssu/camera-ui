@@ -2710,7 +2710,9 @@ camera_ui2_window_capture_button_pressed(CameraUI2Window* self)
 {
   if(!self->priv->lenscover_open)
   {
-    if(!_is_topmost_window(self) && !self->priv->disable_show_on_focus_pressed)
+    if(!dbus_helper_get_device_locked(self->priv->osso) && 
+       !_is_topmost_window(self) && 
+       !self->priv->disable_show_on_focus_pressed)
     {
       gtk_widget_show(GTK_WIDGET(self));
       return;
