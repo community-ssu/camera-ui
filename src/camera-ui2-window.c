@@ -35,6 +35,7 @@
 #include <glib/gstdio.h>
 #include "pmdw.h"
 #include <mce/dbus-names.h>
+#include <mce/mode-names.h>
 
 struct _CameraUI2WindowPrivate
 {
@@ -2376,6 +2377,31 @@ _on_gps_fix(gpointer user_data)
   g_warning("got fix\n");
 }
 
+static DBusHandlerResult
+_on_msg_recieved(DBusConnection* connection G_GNUC_UNUSED, DBusMessage* message, void* data)
+{
+    CameraUI2Window* window = (CameraUI2Window*)data;
+    DBusMessageIter iter;
+    const char* result = NULL;
+
+    dbus_message_iter_init(message, &iter);
+    dbus_message_iter_get_basic(&iter, &result);
+
+    if (g_str_equal(dbus_message_get_path(message), MCE_SIGNAL_PATH)) {
+        if (g_str_equal(result, MCE_DISPLAY_OFF_STRING) && _is_topmost_window(window)) {
+            camera_ui2_window_hide_ui (window);
+            return DBUS_HANDLER_RESULT_HANDLED;
+        } else if (g_str_equal(result, MCE_DISPLAY_ON_STRING) && _is_topmost_window(window)) {
+            camera_ui2_window_show_ui (window);
+            return DBUS_HANDLER_RESULT_HANDLED;
+        } else {
+            return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+        }
+    }
+
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+}
+
 static void
 _on_gps_fix_lost(gpointer user_data)
 {
@@ -2622,6 +2648,18 @@ camera_ui2_window_init(CameraUI2Window* self)
   camera_interface_signal_connect(self->priv->camera_interface, 
 				  "image-preview", 
 				  G_CALLBACK(_on_preview_image), self);
+
+  dbus_bus_add_match (self->priv->sysbus_conn,
+                      "type='signal', "
+                      "interface='" MCE_SIGNAL_IF "', "
+                      "member='" MCE_DISPLAY_SIG "'",
+                      NULL);
+
+  dbus_connection_add_filter (self->priv->sysbus_conn,
+                              _on_msg_recieved,
+                              self,
+                              NULL);
+
   geotagging_helper_register_fix_listener(self->priv->geotagging_helper, _on_gps_fix, self);
   geotagging_helper_register_fix_lost_listener(self->priv->geotagging_helper, _on_gps_fix_lost, self);
 }
