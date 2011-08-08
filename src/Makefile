@@ -28,7 +28,7 @@ BUILDDIR=../build
 BIN=$(BUILDDIR)/camera-ui
 CC=gcc
 PKG_FLAGS=$(shell pkg-config glib-2.0 hildon-1 libhildondesktop-1 libosso gdigicam-0.3 gdigicam-gst-camerabin-0.3 mce sharingdialog liblocation navigation hal gnome-vfs-2.0 libcanberra profile --libs --cflags)
-CCFLAGS=-DGST_USE_UNSTABLE_API
+CCFLAGS=-DGST_USE_UNSTABLE_API -g
 
 all:$(BIN) $(LIB)
 

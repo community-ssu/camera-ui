@@ -1,6 +1,7 @@
 DESKTOP_FILE_PATH=$(shell pkg-config osso-af-settings --variable=desktopentrydir)
 DBUS_SERVICE_DIR=$(shell pkg-config osso-af-settings --variable=dbusservicedir)
 EXEC_DIR=/usr/bin
+DBG_DIR=/usr/lib/debug/usr/bin
 SUBDIRS= src
 BUILDDIR=build
 BIN=camera-ui
@@ -28,6 +29,10 @@ install: all
 	install -m 644 data/32x32/camera_iso1600.png $(DESTDIR)/usr/share/icons/hicolor/32x32/hildon/
 	install -m 644 data/32x32/camera_iso800.png $(DESTDIR)/usr/share/icons/hicolor/32x32/hildon/
 	install -m 644 data/32x32/camera_isoAuto.png $(DESTDIR)/usr/share/icons/hicolor/32x32/hildon/
+
+debug:  all
+	install -d $(DESTDIR)/$(DBG_DIR)
+	install -m 644 $(BUILDDIR)/$(BIN) $(DESTDIR)/$(DBG_DIR)
 
 subdirs: $(SUBDIRS)
 

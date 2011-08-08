@@ -57,6 +57,9 @@ install: build
 
 	# Add here commands to install the package into debian/camera-ui.
 	$(MAKE) DESTDIR=$(CURDIR)/debian/camera-ui install
+	# For some reason, dh_strip isn't working as it should...
+	strip $(CURDIR)/debian/camera-ui/usr/bin/camera-ui
+	$(MAKE) DESTDIR=$(CURDIR)/debian/camera-ui-dbg debug
 
 
 # Build architecture-independent files here.

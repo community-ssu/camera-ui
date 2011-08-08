@@ -1,3 +1,11 @@
+camera-ui (1.1.29.2+0cssu5) unstable; urgency=low
+
+  * (Un)suspend camera-ui when screen is (un)locked.
+  * New shortcut key (h) toggles red indicator.
+  * camera-ui does not start when camkey is pressed while screen is locked.
+
+ -- Mohammad Abu-Garbeyyeh <mohammad7410@gmail.com>  Mon, 08 Aug 2011 15:51:47 +0300
+
 camera-ui (1.1.29.2+0cssu4) unstable; urgency=low
 
   * fixed: remaining recording time isn't updated while recording
