@@ -2387,11 +2387,11 @@ _on_msg_recieved(DBusConnection* connection G_GNUC_UNUSED, DBusMessage* message,
     dbus_message_iter_init(message, &iter);
     dbus_message_iter_get_basic(&iter, &result);
 
-    if (g_str_equal(dbus_message_get_path(message), MCE_SIGNAL_PATH)) {
-        if (g_str_equal(result, MCE_DISPLAY_OFF_STRING) && _is_topmost_window(window)) {
+    if (g_strcmp0(dbus_message_get_path(message), MCE_SIGNAL_PATH) == 0) {
+        if ((g_strcmp0(result, MCE_DISPLAY_OFF_STRING) ==0) && _is_topmost_window(window)) {
             camera_ui2_window_hide_ui (window);
             return DBUS_HANDLER_RESULT_HANDLED;
-        } else if (g_str_equal(result, MCE_DISPLAY_ON_STRING) && _is_topmost_window(window)) {
+        } else if ((g_strcmp0(result, MCE_DISPLAY_ON_STRING) ==0) && _is_topmost_window(window)) {
             camera_ui2_window_show_ui (window);
             return DBUS_HANDLER_RESULT_HANDLED;
         } else {
