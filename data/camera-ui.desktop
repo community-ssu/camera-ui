@@ -12,4 +12,5 @@ X-HildonDesk-ShowInToolbar=true
 X-Osso-Service=com.nokia.cameraui
 X-Osso-Type=application/x-executable
 X-Text-Domain=osso-camera-ui
+X-CSSU-Force-Landscape=true
 Name[en_US]=camera-ui.desktop
