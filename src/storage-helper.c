@@ -21,6 +21,9 @@
 #include <locale.h>
 #include <libintl.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <glib.h>
 
 gchar*
@@ -43,6 +46,51 @@ format_time_string()
   gchar filename[255];
   strftime(filename, 255, "%Y%m%d", t);
   return g_strdup(filename);
+}
+
+static gchar* 
+_find_unused_filename(const gchar* path,
+		      const gchar* time_prefix,
+		      const gboolean is_video)
+{
+  gchar* filename = NULL;
+  int trials = 0;
+  FILE* fd = NULL;
+  struct stat stat_buf;
+  int stat_ret = 0;
+
+  do {
+    guint last_media_id = camera_ui2_get_gconf_last_media_id();
+    trials++;
+
+    if(is_video)
+      filename = g_strdup_printf("%s/DCIM/%s_%03d.mp4", 
+				 path,
+				 time_prefix,
+				 last_media_id+1);
+    else
+      filename = g_strdup_printf("%s/DCIM/%s_%03d.jpg",
+				 path,
+				 time_prefix,
+				 last_media_id+1);
+    stat_ret = stat(filename, &stat_buf);
+    // file already exists?
+    if(stat_ret == 0)
+    {
+      // prepare next try
+      g_free(filename);
+      filename = NULL;
+      camera_ui2_increment_gconf_last_media_id();
+    }
+  }while(stat_ret == 0 && trials < 99);
+
+  // found nonexistent or running out of trials?
+  if(stat_ret == 0)
+  {
+    g_free(filename);
+    filename = NULL;
+  }
+  return filename;
 }
 
 gchar*
@@ -68,16 +116,7 @@ storage_helper_create_filename(CamStorageDevice storage_device,
   }
   gchar* time_prefix = format_time_string();
   guint last_media_id = camera_ui2_get_gconf_last_media_id();
-  if(is_video_mode(scene_mode))
-    filename = g_strdup_printf("%s/DCIM/%s_%03d.mp4", 
-			       path,
-			       time_prefix,
-			       last_media_id+1);
-  else
-    filename = g_strdup_printf("%s/DCIM/%s_%03d.jpg",
-			       path,
-			       time_prefix,
-			       last_media_id+1);
+  filename = _find_unused_filename(path, time_prefix, is_video_mode(scene_mode));
   g_free(path);
   g_free(time_prefix);
   return filename;

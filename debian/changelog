@@ -1,3 +1,9 @@
+camera-ui (1.1.29.2+0cssu6) unstable; urgency=low
+
+  * fix bug 12381 camera-ui overwrites already existing files
+
+ -- Nicolai Hess <nicolaihess@web.de>  Tue, 13 Sep 2011 21:08:54 +0200
+
 camera-ui (1.1.29.2+0cssu5) unstable; urgency=low
 
   * (Un)suspend camera-ui when screen is (un)locked.
