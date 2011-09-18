@@ -1,3 +1,9 @@
+camera-ui (1.1.29.2+0cssu7) unstable; urgency=low
+
+  * fix bug 12428 Corrupted video after camera app switches to background
+
+ -- Nicolai Hess <nicolaihess@web.de>  Sun, 18 Sep 2011 15:45:34 +0200
+
 camera-ui (1.1.29.2+0cssu6) unstable; urgency=low
 
   * fix bug 12381 camera-ui overwrites already existing files

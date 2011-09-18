@@ -2314,6 +2314,10 @@ void camera_ui2_window_show_ui(CameraUI2Window* self)
 
 void camera_ui2_window_hide_ui(CameraUI2Window* self)
 {
+  if(self->priv->in_capture_phase)
+  {
+    _stop_recording(self);
+  }
   camera_interface_close_viewfinder(self->priv->camera_interface); 
   gtk_widget_hide(self->priv->view_finder);
   if(!self->priv->lenscover_open)
