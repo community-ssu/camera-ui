@@ -48,7 +48,6 @@ struct _CameraUI2WindowPrivate
   GtkWidget* flash_mode_image;
   GtkWidget* color_mode_button;
   GtkWidget* color_mode_image;
-  GtkWidget* close_button;
   GtkWidget* still_settings_button;
   GtkWidget* still_settings_image;
   GtkWidget* video_settings_button;
@@ -80,6 +79,8 @@ struct _CameraUI2WindowPrivate
   GtkWidget* iso_level_image;
   GtkWidget* close_window_button;
   GtkWidget* close_window_image;
+  GtkWidget* close_standby_window_button;
+  GtkWidget* close_standby_window_image;
   GtkWidget* geotagging_button;
   GtkWidget* geotagging_image;
   GtkWidget* capture_timer_button;
@@ -88,12 +89,13 @@ struct _CameraUI2WindowPrivate
   GtkWidget* crosshair;
   GtkWidget* zoom_slider;
   GtkWidget* right_button_box;
-  GtkWidget* right_button_box2;
   GtkWidget* bottom_button_box;
   GtkWidget* top_button_box;
   GtkWidget* left_button_box;
   GtkWidget* root_container;
   GtkWidget* standby_image;
+  GtkWidget* standby_view;
+  GtkWidget* standby_label;
   GtkWidget* recording_time_label;
 
   CameraUI2PreviewWindow* preview_window;
@@ -765,7 +767,8 @@ _on_close_window_button_release(GtkWidget* widget, GdkEventButton* event, gpoint
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->close_window_image), 
 			       "camera_overlay_close", HILDON_ICON_SIZE_FINGER);
-  gtk_widget_hide(GTK_WIDGET(self));
+  if(event->x >= 0 && event->y >= 0 && event->x < 64 && event->y < 64)
+    gtk_widget_hide(GTK_WIDGET(self));
   return TRUE;
 }
 
@@ -774,6 +777,27 @@ _on_close_window_button_press(GtkWidget* widget, GdkEventButton* event, gpointer
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->close_window_image), 
+			       "camera_overlay_close_pressed", HILDON_ICON_SIZE_FINGER);
+  return TRUE;
+}
+
+
+static gboolean
+_on_close_standby_window_button_release(GtkWidget* widget, GdkEventButton* event, gpointer user_data)
+{
+  CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
+  gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->close_standby_window_image), 
+			       "camera_overlay_close", HILDON_ICON_SIZE_FINGER);
+  if(event->x >= 0 && event->y >= 0 && event->x < 64 && event->y < 64)
+    gtk_widget_hide(GTK_WIDGET(self));
+  return TRUE;
+}
+
+static gboolean
+_on_close_standby_window_button_press(GtkWidget* widget, GdkEventButton* event, gpointer user_data)
+{
+  CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
+  gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->close_standby_window_image), 
 			       "camera_overlay_close_pressed", HILDON_ICON_SIZE_FINGER);
   return TRUE;
 }
@@ -1357,11 +1381,13 @@ _on_viewfinder_pressed(GtkWidget* widget, GdkEventButton* event, gpointer user_d
     {
       gtk_window_unfullscreen(GTK_WINDOW(self));
       gtk_widget_hide(self->priv->close_window_button);
+      gtk_widget_hide(self->priv->close_standby_window_button);
     }
     else
     {
       gtk_window_fullscreen(GTK_WINDOW(self));
       gtk_widget_show(self->priv->close_window_button);
+      gtk_widget_show(self->priv->close_standby_window_button);
     }
     self->priv->is_fullscreen = !self->priv->is_fullscreen;
   }
@@ -1712,7 +1738,7 @@ _on_preview_window_hide(GtkWidget *widget, gpointer user_data)
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   if(hildon_program_get_is_topmost(self->priv->program))
   {
-    gtk_widget_hide(self->priv->standby_image); 
+    gtk_widget_hide(self->priv->standby_view); 
     gtk_widget_show(self->priv->view_finder); 
     camera_interface_open_viewfinder(self->priv->camera_interface, 
 				     GDK_WINDOW_XWINDOW(self->priv->view_finder->window)); 
@@ -1764,6 +1790,26 @@ _init_close_window_button(CameraUI2Window* self)
   g_signal_connect(GTK_CONTAINER(self->priv->close_window_button), 
 		   "button-release-event", 
 		   G_CALLBACK(_on_close_window_button_release),
+		   self);
+}
+
+static void
+_init_close_standby_window_button(CameraUI2Window* self)
+{
+  self->priv->close_standby_window_image = gtk_image_new_from_icon_name("camera_overlay_close", HILDON_ICON_SIZE_FINGER);
+  self->priv->close_standby_window_button = gtk_event_box_new();
+  gtk_container_set_border_width(GTK_CONTAINER(self->priv->close_standby_window_button), 0);
+  gtk_event_box_set_visible_window(GTK_EVENT_BOX(self->priv->close_standby_window_button),
+				   FALSE);
+  gtk_container_add(GTK_CONTAINER(self->priv->close_standby_window_button), self->priv->close_standby_window_image);
+  gtk_widget_set_size_request(self->priv->close_standby_window_button, 80, 64);
+  g_signal_connect(GTK_CONTAINER(self->priv->close_standby_window_button), 
+		   "button-press-event", 
+		   G_CALLBACK(_on_close_standby_window_button_press),
+		   self);
+  g_signal_connect(GTK_CONTAINER(self->priv->close_standby_window_button), 
+		   "button-release-event", 
+		   G_CALLBACK(_on_close_standby_window_button_release),
 		   self);
 }
 
@@ -2281,14 +2327,12 @@ _show_hide_ui(CameraUI2Window* self, gboolean show)
   if(show)
   {
     gtk_widget_show(self->priv->right_button_box);
-    gtk_widget_show(self->priv->top_button_box);
     gtk_widget_show(self->priv->bottom_button_box);
     gtk_widget_show(self->priv->left_button_box);
   }
   else
   {
     gtk_widget_hide(self->priv->right_button_box);
-    gtk_widget_hide(self->priv->top_button_box);
     gtk_widget_hide(self->priv->bottom_button_box);
     gtk_widget_hide(self->priv->left_button_box);
   }
@@ -2299,8 +2343,8 @@ void camera_ui2_window_show_ui(CameraUI2Window* self)
   self->priv->lenscover_open = !dbus_helper_is_camera_lenscover_closed(self->priv->osso);
   if(self->priv->lenscover_open)
   {
+    gtk_widget_hide(self->priv->standby_view);
     gtk_widget_show(self->priv->view_finder);
-    gtk_widget_hide(self->priv->standby_image);
     camera_interface_open_viewfinder(self->priv->camera_interface, 
 				     GDK_WINDOW_XWINDOW(self->priv->view_finder->window)); 
     _update_remaining_count_indicator(self);
@@ -2309,6 +2353,12 @@ void camera_ui2_window_show_ui(CameraUI2Window* self)
     {
       geotagging_helper_run(self->priv->geotagging_helper);
     }
+  }
+  else
+  {
+    gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->standby_image),
+				 "camera_lenscover", 216);
+    gtk_label_set_text(GTK_LABEL(self->priv->standby_label), dgettext("osso-camera-ui", "camera_ia_open_lens_cover"));
   }
 }
 
@@ -2321,9 +2371,12 @@ void camera_ui2_window_hide_ui(CameraUI2Window* self)
   camera_interface_close_viewfinder(self->priv->camera_interface); 
   gtk_widget_hide(self->priv->view_finder);
   if(!self->priv->lenscover_open)
+  {
     gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->standby_image),
-				 "camera_lenscover", 216);
-  gtk_widget_show(self->priv->standby_image);
+				 "camera_standby", 216);
+    gtk_label_set_text(GTK_LABEL(self->priv->standby_label), dgettext("osso-camera-ui", "camera_ia_standby"));
+  }
+  gtk_widget_show(self->priv->standby_view);
 }
 
 static void
@@ -2492,6 +2545,7 @@ camera_ui2_window_init(CameraUI2Window* self)
   _read_gconf_camera_settings(self);
   _set_camera_settings(self);
   _init_close_window_button(self);
+  _init_close_standby_window_button(self);
   _init_scene_mode_button(self);
   _init_flash_mode_button(self);
   _init_video_mic_mode_button(self);
@@ -2510,33 +2564,33 @@ camera_ui2_window_init(CameraUI2Window* self)
   _init_video_state_button(self);
   _init_capture_timer_button(self);
   _init_menu(self);
-  GtkWidget* root_h_box = gtk_hbox_new(FALSE, 0);
-  GtkWidget* root_table = gtk_table_new(3, 3, FALSE);
 
   self->priv->bottom_button_box = gtk_hbox_new(FALSE, 0);
   self->priv->top_button_box = gtk_hbox_new(FALSE, 0);
   self->priv->right_button_box = gtk_vbox_new(FALSE, 0);
-  self->priv->right_button_box2 = gtk_vbox_new(TRUE, 0);
   self->priv->left_button_box = gtk_vbox_new(FALSE, 0);
   self->priv->root_container = gtk_vbox_new(FALSE, 0);
+
   GtkWidget* center_box = gtk_vbox_new(FALSE, 0);
+  GtkWidget* right_button_box2 = gtk_vbox_new(TRUE, 0);
 
   gtk_widget_set_size_request(self->priv->right_button_box, 84, -1);
   gtk_widget_set_size_request(self->priv->left_button_box, 84, -1);
   gtk_widget_set_size_request(self->priv->bottom_button_box, -1, 48);
   gtk_widget_set_size_request(self->priv->top_button_box, -1, 48);
+
   self->priv->crosshair = gtk_image_new_from_icon_name("camera_crosshair_white", 216);
 
   self->priv->zoom_slider = _create_zoom_slider();
 
   gtk_box_pack_start(GTK_BOX(self->priv->right_button_box), self->priv->close_window_button, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(self->priv->right_button_box2), self->priv->scene_mode_button, TRUE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(self->priv->right_button_box2), self->priv->flash_mode_button, TRUE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(self->priv->right_button_box2), self->priv->video_mic_mode_button, TRUE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(self->priv->right_button_box2), self->priv->still_settings_button, TRUE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(self->priv->right_button_box2), self->priv->video_settings_button, TRUE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(self->priv->right_button_box2), self->priv->image_viewer_button, TRUE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(self->priv->right_button_box2), self->priv->media_player_button, TRUE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(right_button_box2), self->priv->scene_mode_button, TRUE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(right_button_box2), self->priv->flash_mode_button, TRUE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(right_button_box2), self->priv->video_mic_mode_button, TRUE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(right_button_box2), self->priv->still_settings_button, TRUE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(right_button_box2), self->priv->video_settings_button, TRUE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(right_button_box2), self->priv->image_viewer_button, TRUE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(right_button_box2), self->priv->media_player_button, TRUE, FALSE, 0);
 
   gtk_box_pack_start(GTK_BOX(self->priv->bottom_button_box), self->priv->image_counter_label, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(self->priv->bottom_button_box), self->priv->storage_button, FALSE, FALSE, 0);
@@ -2565,29 +2619,64 @@ camera_ui2_window_init(CameraUI2Window* self)
   gtk_box_pack_start(GTK_BOX(self->priv->left_button_box), self->priv->video_stop_button, FALSE, FALSE, 0);
 
 
-  gtk_container_add(GTK_CONTAINER(self->priv->view_finder), root_table);
-
-  gtk_table_attach(GTK_TABLE(root_table), self->priv->left_button_box, 0, 1, 0, 2, GTK_SHRINK, GTK_EXPAND | GTK_FILL, 0, 0);
-  gtk_table_attach(GTK_TABLE(root_table), center_box, 1, 2, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND, 0, 0);
-  gtk_table_attach(GTK_TABLE(root_table), self->priv->right_button_box, 2, 3, 0, 3, GTK_SHRINK, GTK_EXPAND | GTK_FILL, 0, 0);
-  gtk_box_pack_end(GTK_BOX(self->priv->right_button_box), self->priv->right_button_box2, TRUE, TRUE, 0);
-
+  gtk_box_pack_end(GTK_BOX(self->priv->right_button_box), right_button_box2, TRUE, TRUE, 0);
   gtk_box_pack_start(GTK_BOX(center_box), self->priv->crosshair, TRUE, TRUE, 0);
-  //  gtk_box_pack_start(GTK_BOX(center_box), self->priv->focus_label, FALSE, FALSE, 0);
 
-  gtk_table_attach(GTK_TABLE(root_table), self->priv->bottom_button_box, 0, 2, 2, 3, GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(root_table), self->priv->top_button_box, 0, 2, 0, 1, GTK_EXPAND | GTK_FILL, GTK_SHRINK, 0, 0);
+  GtkWidget* root_table = gtk_table_new(3, 3, FALSE);
+  GtkWidget* frame_bottom_box = gtk_hbox_new(FALSE, 0);
+  GtkWidget* frame_top_box = gtk_hbox_new(FALSE, 0);
+  GtkWidget* frame_right_box = gtk_vbox_new(FALSE, 0);
+  GtkWidget* frame_left_box = gtk_vbox_new(FALSE, 0);
+
+  gtk_widget_show(frame_right_box);
+  gtk_widget_show(frame_left_box);
+  gtk_widget_show(frame_bottom_box);
+  gtk_widget_show(frame_top_box);
+
+  gtk_widget_set_size_request(frame_right_box, 84, -1);
+  gtk_widget_set_size_request(frame_left_box, 84, -1);
+  gtk_widget_set_size_request(frame_bottom_box, -1, 48);
+  gtk_widget_set_size_request(frame_top_box, -1, 48);
+  gtk_box_pack_start(GTK_BOX(frame_right_box), self->priv->right_button_box, TRUE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(frame_left_box), self->priv->left_button_box, TRUE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(frame_top_box), self->priv->top_button_box, TRUE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(frame_bottom_box), self->priv->bottom_button_box, TRUE, TRUE, 0);
+
+  gtk_container_add(GTK_CONTAINER(self->priv->view_finder), root_table);
+  //  gtk_table_attach(GTK_TABLE(root_table), self->priv->left_button_box, 0, 1, 0, 2, GTK_SHRINK, GTK_EXPAND | GTK_FILL, 0, 0);
+  gtk_table_attach(GTK_TABLE(root_table), frame_left_box, 0, 1, 0, 2, GTK_SHRINK, GTK_EXPAND | GTK_FILL, 0, 0);
+  gtk_table_attach(GTK_TABLE(root_table), center_box, 1, 2, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND, 0, 0);
+  // gtk_table_attach(GTK_TABLE(root_table), self->priv->right_button_box, 2, 3, 0, 3, GTK_SHRINK, GTK_EXPAND | GTK_FILL, 0, 0);
+  gtk_table_attach(GTK_TABLE(root_table), frame_right_box, 2, 3, 0, 3, GTK_SHRINK, GTK_EXPAND | GTK_FILL, 0, 0);
+  //  gtk_table_attach(GTK_TABLE(root_table), self->priv->bottom_button_box, 0, 2, 2, 3, GTK_FILL, GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(root_table), frame_bottom_box, 0, 2, 2, 3, GTK_FILL, GTK_SHRINK, 0, 0);
+  //  gtk_table_attach(GTK_TABLE(root_table), self->priv->top_button_box, 0, 2, 0, 1, GTK_EXPAND | GTK_FILL, GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(root_table), frame_top_box, 0, 2, 0, 1, GTK_EXPAND | GTK_FILL, GTK_SHRINK, 0, 0);
+
   _init_view_finder(self);
   
   gtk_container_set_border_width(GTK_CONTAINER(self), 0);
   gtk_container_add(GTK_CONTAINER(self), self->priv->root_container);
   self->priv->standby_image = gtk_image_new_from_icon_name("camera_standby", 216);
+  self->priv->standby_view = gtk_event_box_new();
+  GtkWidget* standby_view_box = gtk_hbox_new(FALSE, 0);
+  self->priv->standby_label = gtk_label_new(dgettext("osso-camera-ui", "camera_ia_open_lens_cover"));
+
+  gtk_box_pack_start(GTK_BOX(standby_view_box), self->priv->standby_image, TRUE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(standby_view_box), self->priv->standby_label, TRUE, TRUE, 0);
+  GtkWidget* alignment = gtk_alignment_new(1.0, 0, 0, 0);
+  gtk_container_add(GTK_CONTAINER(alignment), self->priv->close_standby_window_button);
+  gtk_box_pack_start(GTK_BOX(standby_view_box), alignment, TRUE, TRUE, 0);
+  gtk_widget_show_all(standby_view_box);
+  gtk_container_add(GTK_CONTAINER(self->priv->standby_view), standby_view_box);
+
   gtk_box_pack_start(GTK_BOX(self->priv->root_container), self->priv->view_finder, TRUE, TRUE, 0);
-  gtk_box_pack_start(GTK_BOX(self->priv->root_container), self->priv->standby_image, TRUE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(self->priv->root_container), self->priv->standby_view, TRUE, TRUE, 0);
 
 
   g_object_set(self->priv->view_finder, "can-focus", TRUE, NULL);
   g_signal_connect(self->priv->view_finder, "button-release-event", G_CALLBACK(_on_viewfinder_pressed), self);
+  g_signal_connect(self->priv->standby_view, "button-release-event", G_CALLBACK(_on_viewfinder_pressed), self);
 
   g_signal_connect(GTK_WIDGET(self), "key-press-event", G_CALLBACK(_on_key_pressed), self);
   g_signal_connect(GTK_WIDGET(self), "key-release-event", G_CALLBACK(_on_key_released), self);
@@ -2599,13 +2688,12 @@ camera_ui2_window_init(CameraUI2Window* self)
 
   gtk_widget_show(self->priv->root_container);
   gtk_widget_show(self->priv->view_finder);
-  gtk_widget_show(root_h_box);
   gtk_widget_show(root_table);
   gtk_widget_show(center_box);
 
   gtk_widget_show(self->priv->left_button_box);
   gtk_widget_show(self->priv->right_button_box);
-  gtk_widget_show(self->priv->right_button_box2);
+  gtk_widget_show(right_button_box2);
   gtk_widget_show(self->priv->bottom_button_box);
   gtk_widget_show(self->priv->top_button_box);
   gtk_widget_show_all(self->priv->scene_mode_button);
@@ -2681,6 +2769,9 @@ camera_ui2_window_lenscover_closed(CameraUI2Window* self)
   if(_is_visible(self))
   {
     camera_ui2_window_hide_ui(self);
+    gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->standby_image),
+				 "camera_lenscover", 216);
+    gtk_label_set_text(GTK_LABEL(self->priv->standby_label), dgettext("osso-camera-ui", "camera_ia_open_lens_cover"));
   }
   if(!self->priv->disable_hide_on_lenscover_close)
     gtk_widget_hide(GTK_WIDGET(self));
@@ -2694,6 +2785,7 @@ camera_ui2_window_lenscover_opened(CameraUI2Window* self)
   {
     gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->standby_image),
 				 "camera_standby", 216);
+    gtk_label_set_text(GTK_LABEL(self->priv->standby_label), dgettext("osso-camera-ui", "camera_ia_standby"));
   }
   if(_is_visible(self) && _is_topmost_window(self))
     camera_ui2_window_show_ui(self);

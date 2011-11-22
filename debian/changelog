@@ -1,3 +1,9 @@
+camera-ui (1.1.29.2+0cssu8) unstable; urgency=low
+
+  * fix bug 12318 open lid dialog has no close button
+
+ -- Nicolai Hess <nicolaihess@web.de>  Tue, 22 Nov 2011 23:05:22 +0100
+
 camera-ui (1.1.29.2+0cssu7) unstable; urgency=low
 
   * fix bug 12428 Corrupted video after camera app switches to background

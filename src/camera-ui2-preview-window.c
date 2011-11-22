@@ -333,14 +333,6 @@ _is_topmost_changed(HildonStackableWindow* window,
   CameraUI2PreviewWindow* self = CAMERA_UI2_PREVIEW_WINDOW(user_data);
   gboolean is_topmost;
   g_object_get(GTK_WINDOW(self), "is-topmost", &is_topmost, NULL);
-  if(is_topmost)
-  {
-    g_print("preview window topmost TRUE\n");
-  }
-  else
-  {
-    g_print("preview window topmost FALSE\n");
-  }
   if(is_topmost && self->priv->preview)
   {
     GdkPixmap* background = gdk_pixmap_new(GTK_WIDGET(self)->window, 800, 480, -1); 
