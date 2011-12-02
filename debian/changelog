@@ -1,3 +1,10 @@
+camera-ui (1.1.29.2+0cssu9) unstable; urgency=low
+
+  * possible fix for bug 12516 (better handling of unwritable
+    memory cards)
+
+ -- Nicolai Hess <nicolaihess@web.de>  Fri, 02 Dec 2011 23:56:20 +0100
+
 camera-ui (1.1.29.2+0cssu8) unstable; urgency=low
 
   * fix bug 12318 open lid dialog has no close button

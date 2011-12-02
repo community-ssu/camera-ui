@@ -722,7 +722,8 @@ _resume_recording(CameraUI2Window* self)
 static void
 _pause_recording(CameraUI2Window* self)
 {
-  if(camera_interface_pause_recording(self->priv->camera_interface))
+  if(self->priv->camera_settings.video_state == CAM_VIDEO_STATE_RECORDING &&
+     camera_interface_pause_recording(self->priv->camera_interface))
   {
     self->priv->camera_settings.video_state = CAM_VIDEO_STATE_PAUSED;
     gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->video_state_image), 
@@ -767,7 +768,7 @@ _on_close_window_button_release(GtkWidget* widget, GdkEventButton* event, gpoint
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->close_window_image), 
 			       "camera_overlay_close", HILDON_ICON_SIZE_FINGER);
-  if(event->x >= 0 && event->y >= 0 && event->x < 64 && event->y < 64)
+  if(event->x >= 0 && event->y >= 0 && event->x < 84 && event->y < 84)
     gtk_widget_hide(GTK_WIDGET(self));
   return TRUE;
 }
@@ -788,7 +789,7 @@ _on_close_standby_window_button_release(GtkWidget* widget, GdkEventButton* event
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->close_standby_window_image), 
 			       "camera_overlay_close", HILDON_ICON_SIZE_FINGER);
-  if(event->x >= 0 && event->y >= 0 && event->x < 64 && event->y < 64)
+  if(event->x >= 0 && event->y >= 0 && event->x < 84 && event->y < 84)
     gtk_widget_hide(GTK_WIDGET(self));
   return TRUE;
 }
@@ -1204,9 +1205,6 @@ _on_storage_button_release(GtkWidget* widget, GdkEventButton* event, gpointer us
   settings.scene_mode = self->priv->camera_settings.scene_mode;
   if(event->x >= 0 && event->y >= 0 && event->x < 48 && event->y < 48)
     show_storage_settings_dialog(&settings);
-  gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->storage_image), 
-			       storage_device_icon_name(settings.storage_device, FALSE), 
-			       HILDON_ICON_SIZE_STYLUS);
   if(settings.preview_mode != self->priv->camera_settings.preview_mode)
   {
     _set_preview_mode(self, settings.preview_mode);
@@ -1217,9 +1215,15 @@ _on_storage_button_release(GtkWidget* widget, GdkEventButton* event, gpointer us
     self->priv->camera_settings.author = g_strdup(settings.author);
     camera_ui2_set_gconf_author(settings.author);
   }
-  camera_ui2_set_gconf_storage_device(settings.storage_device);
-  self->priv->camera_settings.storage_device = settings.storage_device;
-  _update_remaining_count_indicator(self);
+  if(self->priv->camera_settings.storage_device != CAM_STORAGE_EXTERN_UNAVAILABLE)
+  {
+    camera_ui2_set_gconf_storage_device(settings.storage_device);
+    self->priv->camera_settings.storage_device = settings.storage_device;
+    _update_remaining_count_indicator(self);
+  }
+  gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->storage_image), 
+			       storage_device_icon_name(self->priv->camera_settings.storage_device, FALSE), 
+			       HILDON_ICON_SIZE_STYLUS);
   g_free(settings.author);
   return TRUE;
 }
@@ -1543,8 +1547,7 @@ _on_key_released(GtkWidget* widget, GdkEventKey* event, gpointer user_data)
     }
   case GDK_p:
     {
-      if(is_video_mode(self->priv->camera_settings.scene_mode) &&
-	 self->priv->in_capture_phase)
+      if(is_video_mode(self->priv->camera_settings.scene_mode))
       {
 	_pause_recording(self);
       }
@@ -2170,6 +2173,28 @@ _create_zoom_slider()
 }
 
 static void
+_check_mmc_available(CameraUI2Window* self)
+{
+  if(!storage_helper_mmc_user_writable())
+  {
+    if(self->priv->camera_settings.storage_device == CAM_STORAGE_EXTERN)
+    {
+      self->priv->camera_settings.storage_device = CAM_STORAGE_EXTERN_UNAVAILABLE;
+    }
+  }
+  else
+  {
+    if(self->priv->camera_settings.storage_device == CAM_STORAGE_EXTERN_UNAVAILABLE)
+    {
+      self->priv->camera_settings.storage_device = CAM_STORAGE_EXTERN;
+    }
+  }
+  gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->storage_image), 
+			       storage_device_icon_name(self->priv->camera_settings.storage_device, FALSE), 
+			       HILDON_ICON_SIZE_STYLUS);
+}
+
+static void
 _read_gconf_camera_settings(CameraUI2Window* self)
 {
   self->priv->camera_settings.scene_mode = camera_ui2_get_gconf_scene_mode();
@@ -2189,6 +2214,7 @@ _read_gconf_camera_settings(CameraUI2Window* self)
   self->priv->disable_hide_on_lenscover_close = camera_ui2_get_gconf_hide_on_lenscover_close();
   self->priv->disable_show_on_focus_pressed = camera_ui2_get_gconf_show_on_focus_pressed();
   self->priv->with_sound_effects = camera_ui2_get_gconf_enabled_sound_effects();
+  _check_mmc_available(self);
 }
 
 static void
@@ -2347,6 +2373,7 @@ void camera_ui2_window_show_ui(CameraUI2Window* self)
     gtk_widget_show(self->priv->view_finder);
     camera_interface_open_viewfinder(self->priv->camera_interface, 
 				     GDK_WINDOW_XWINDOW(self->priv->view_finder->window)); 
+    _check_mmc_available(self);
     _update_remaining_count_indicator(self);
     gtk_widget_queue_draw(self->priv->view_finder);
     if(geotagging_helper_get_mode(self->priv->geotagging_helper) != GEO_TAG_NONE)

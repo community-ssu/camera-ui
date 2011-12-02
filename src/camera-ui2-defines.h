@@ -133,10 +133,11 @@ const gchar* VIDEO_MIC_MODE_ICON[][2] =
 const gchar* STORAGE_DEVICE_ICON[][2] =
   {{"camera_removable_memory_card","camera_removable_memory_card_pressed"},
    {"camera_internal_memory","camera_internal_memory_pressed"},
+   {"camera_internal_memory","camera_internal_memory_pressed"},
   };
 
 const gchar* STORAGE_DEVICE_NAME[] =
-  {"card", "camera_va_memory_internal"};
+  {"card", "camera_va_memory_internal", "camera_va_memory_internal"};
 
 const gchar* VIDEO_STATE_ICON_NAME[][2] =
   {{"camera_video_stop", "camera_video_stop_pressed"},

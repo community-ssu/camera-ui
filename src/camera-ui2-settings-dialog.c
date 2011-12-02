@@ -140,7 +140,6 @@ show_app_settings_dialog(AppSettings* app_settings)
   gtk_widget_destroy(dialog);
 }
 
-
 void
 show_storage_settings_dialog(CameraSettings* settings)
 {
@@ -158,10 +157,16 @@ show_storage_settings_dialog(CameraSettings* settings)
 						       HILDON_BUTTON_ARRANGEMENT_HORIZONTAL);
   GtkWidget* storage_selector = hildon_touch_selector_new_text();
   GtkWidget* preview_selector = hildon_touch_selector_new_text();
-  gchar* mmc_card_name = storage_helper_get_mmc_name();
-  
-  hildon_touch_selector_append_text(HILDON_TOUCH_SELECTOR(storage_selector), mmc_card_name);
-  g_free(mmc_card_name);
+  if(storage_helper_mmc_user_writable())
+  {
+    gchar* mmc_card_name = storage_helper_get_mmc_name();
+    hildon_touch_selector_append_text(HILDON_TOUCH_SELECTOR(storage_selector), mmc_card_name);
+    g_free(mmc_card_name);
+  }
+  else
+  {
+    gtk_widget_set_sensitive(storage_button, FALSE);
+  }
   hildon_touch_selector_append_text(HILDON_TOUCH_SELECTOR(storage_selector), 
 				    dgettext("osso-camera-ui", "camera_va_memory_internal"));
 
@@ -198,8 +203,14 @@ show_storage_settings_dialog(CameraSettings* settings)
 
   hildon_picker_button_set_selector(HILDON_PICKER_BUTTON(storage_button), HILDON_TOUCH_SELECTOR(storage_selector));
   hildon_picker_button_set_selector(HILDON_PICKER_BUTTON(preview_button), HILDON_TOUCH_SELECTOR(preview_selector));
-			  
-  hildon_touch_selector_set_active(HILDON_TOUCH_SELECTOR(storage_selector), 0, settings->storage_device);
+  if(settings->storage_device == CAM_STORAGE_EXTERN_UNAVAILABLE)
+  {
+    hildon_touch_selector_set_active(HILDON_TOUCH_SELECTOR(storage_selector), 0, 0);
+  }
+  else
+  {
+    hildon_touch_selector_set_active(HILDON_TOUCH_SELECTOR(storage_selector), 0, settings->storage_device);
+  }
   hildon_touch_selector_set_active(HILDON_TOUCH_SELECTOR(preview_selector), 0, settings->preview_mode);
   if(settings->author != NULL)
   {

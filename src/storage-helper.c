@@ -26,6 +26,18 @@
 #include <unistd.h>
 #include <glib.h>
 
+gboolean
+storage_helper_mmc_user_writable()
+{
+  GnomeVFSVolumeMonitor* vfs_monitor = gnome_vfs_get_volume_monitor();
+  GnomeVFSVolume* mmc_volume = 
+    gnome_vfs_volume_monitor_get_volume_for_path(vfs_monitor,
+						 g_getenv("MMC_MOUNTPOINT"));
+  gboolean is_writable = gnome_vfs_volume_is_user_visible(mmc_volume);
+  gnome_vfs_volume_unref(mmc_volume);
+  return is_writable;
+}
+
 gchar*
 storage_helper_get_mmc_name()
 {
@@ -34,6 +46,14 @@ storage_helper_get_mmc_name()
     gnome_vfs_volume_monitor_get_volume_for_path(vfs_monitor,
 						 g_getenv("MMC_MOUNTPOINT"));
   gchar* name = gnome_vfs_volume_get_display_name(mmc_volume);
+  g_warning("is read only ? %s %d", name, gnome_vfs_volume_is_read_only(mmc_volume));
+  g_warning("get type ? %s %d", name, gnome_vfs_volume_get_volume_type(mmc_volume));
+  g_warning("get type ? %s %d", name, gnome_vfs_volume_is_user_visible(mmc_volume));
+  if(g_strcmp0(name, "mmc-undefined-name") == 0)
+  {
+    g_free(name);
+    name = g_strdup(dgettext("hildon-fm", "sfil_li_memorycard_removable"));
+  }
   gnome_vfs_volume_unref(mmc_volume);
   return name;
 }
@@ -99,7 +119,8 @@ storage_helper_create_filename(CamStorageDevice storage_device,
 {
   gchar* filename = NULL;
   gchar* path = NULL;
-  if(storage_device == CAM_STORAGE_INTERN &&
+  if((storage_device == CAM_STORAGE_INTERN ||
+      storage_device == CAM_STORAGE_EXTERN_UNAVAILABLE) &&
      camera_ui2_internal_mmc_gconf_available())
   {
     path = g_strdup(g_getenv("INTERNAL_MMC_MOUNTPOINT"));
@@ -153,7 +174,8 @@ storage_helper_free_space(CamStorageDevice storage_device)
   gchar* volume_path = NULL;
   GnomeVFSURI* volume_uri = NULL;
 
-  if(storage_device == CAM_STORAGE_INTERN)
+  if(storage_device == CAM_STORAGE_INTERN ||
+     storage_device == CAM_STORAGE_EXTERN_UNAVAILABLE)
   {
     volume_path = gnome_vfs_get_uri_from_local_path(g_getenv("INTERNAL_MMC_MOUNTPOINT"));
   }

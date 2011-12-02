@@ -94,7 +94,8 @@ typedef enum {
 
 typedef enum {
   CAM_STORAGE_EXTERN = 0,
-  CAM_STORAGE_INTERN = 1
+  CAM_STORAGE_INTERN = 1,
+  CAM_STORAGE_EXTERN_UNAVAILABLE = 2
 } CamStorageDevice;
 
 typedef enum {

@@ -57,4 +57,13 @@ storage_helper_free_space(CamStorageDevice storage);
 gchar*
 storage_helper_get_mmc_name();
 
+/*
+  Test if the mmc is user writable.
+  For maemo, I think, this means if it has
+  a VFAT partition, so it shows up in filemanager,
+  for example.
+ */
+gboolean
+storage_helper_mmc_user_writable();
+
 #endif

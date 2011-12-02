@@ -240,7 +240,6 @@ camera_ui2_get_gconf_storage_device()
   GConfClient* client = gconf_client_get_default();
   gint ret = 0;
   g_assert(GCONF_IS_CLIENT(client));
-
   ret = gconf_client_get_int(client, GC_STORAGE_DEVICE_KEY, NULL);
   g_object_unref(client);
   return ret;
