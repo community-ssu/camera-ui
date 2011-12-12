@@ -1,0 +1,11 @@
+#!/bin/sh
+if [ "$1" == "1" ]; then
+    tracker-processes -t
+    renice 20 `pidof camera-ui`
+    renice 20 `pidof Xorg`
+    renice 20 `pidof omap3camd`
+else
+    renice 0 `pidof camera-ui`
+    renice -8 `pidof Xorg`
+    renice 0 `pidof omap3camd`
+fi

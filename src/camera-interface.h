@@ -148,4 +148,7 @@ camera_interface_get_raw_data();
 void
 camera_interface_get_camera_capture_data(CameraInterface* camera_interface, CameraCaptureData** cc);
 
+void
+camera_interface_set_priority(CamPriority camera_priority);
+
 #endif

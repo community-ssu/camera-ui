@@ -199,6 +199,48 @@ _add_tag_listener(CameraInterface* camera_interface)
 }
 
 /*
+  Can be used to calculate bitrate based on resolution and target quality.  
+  Coefficients retrieved from gst-dsp. Unused by now.
+*/
+#if 0
+static guint
+calc_bitrate(GstPad * pad)
+{
+  float bits_per_pixel = 0.2, scale;
+  guint ref_bitrate,bitrate = 0;
+  const guint reference_fps = 15;
+  const float quality = 1.2;
+  guint height = 0, width = 0;
+  float framerate=0;
+  GstCaps *caps;
+  GstStructure *str; 
+  const GValue *g_framerate = NULL;
+
+  caps = gst_pad_get_negotiated_caps(pad);
+  str = gst_caps_get_structure (caps, 0);
+
+  if(gst_structure_get_int (str, "height", &height) &&
+     gst_structure_get_int (str, "width", &width) &&
+      (g_framerate = gst_structure_get_value (str, "framerate")))
+  {
+
+    framerate = ((float)gst_value_get_fraction_numerator(g_framerate))/
+                (float)gst_value_get_fraction_denominator(g_framerate);
+
+    ref_bitrate = (width * height) / bits_per_pixel;
+    
+    scale = 1 + ((float) framerate / reference_fps - 1) * quality;
+    
+    bitrate = ref_bitrate * scale;
+    g_debug("Setting bitrate = %.2f for width=%u,height=%u,framerate=%.2f\n",(float)bitrate,width,height,framerate);
+  }
+  else
+    g_debug("Unable to get src pad caps\n");
+
+  return bitrate;
+}
+#endif
+/*
   I want to handle the bus messages our self. So I can catch the raw image buffer
   from the camdriver. All the rest is copied from gdigicams handle_bus_message_func,
   as we can only replace and not extend that function.
@@ -235,12 +277,86 @@ _handle_bus_message_func(GDigicamManager *manager,
 	  {
 	    switch(mode)
 	    {
-	    case G_DIGICAM_MODE_STILL:
-	      g_object_set(bin, "mode", 0, NULL);
-	      break;
-	    case G_DIGICAM_MODE_VIDEO:
-	      g_object_set(bin, "mode", 1, NULL);
-	      break;
+	      case G_DIGICAM_MODE_STILL:
+		g_object_set(bin, "mode", 0, NULL);
+		break;
+	      case G_DIGICAM_MODE_VIDEO:
+		g_object_set(bin, "mode", 1, NULL);
+	    
+		  break;
+	    }
+	  }
+	}
+	else if(GST_STATE_READY == new)
+	{
+	  GDigicamMode mode;
+	  if(g_digicam_manager_get_mode(manager,
+					&mode,
+					NULL))
+	  {
+	    switch(mode)
+	    {
+	      case G_DIGICAM_MODE_VIDEO:
+	      {
+		GstElement* videoenc = 0;
+		GstElement* videosrc = 0;
+		
+		g_object_get(bin,"videoenc",&videoenc,NULL);
+		if(videoenc)
+		{
+		  g_object_get(bin,"videosrc",&videosrc,NULL);
+		  if(videosrc)
+		  {
+		    GstPad * srcpad=gst_element_get_static_pad (videosrc,"src");
+		    if(srcpad)
+		    {
+		      /*
+		      guint bitrate = calc_bitrate(srcpad);
+		      */
+		      gst_object_unref (GST_OBJECT (srcpad));
+		      gchar * videoenc_name = NULL;
+		      g_object_get(videoenc,"name",&videoenc_name,NULL);
+		      if(videoenc_name)
+		      {
+			if(g_str_has_prefix(videoenc_name,"dsphdmp4venc"))
+			{
+			  g_object_set(videoenc,
+				       "max-bitrate",0,
+				       NULL);
+			  g_object_set(videoenc,
+				       "bitrate",-1,
+				       NULL);
+			  /*g_object_set(videoenc,
+				       "intra-refresh",1,
+				       NULL);*/
+			}
+			else
+			  g_object_set(videoenc,
+				       "bitrate",0,
+				       NULL);
+			g_free (videoenc_name);			
+		      }
+		      else
+		      {
+			g_debug("Unable to get videoenc name\n");
+			g_object_set(videoenc,
+				     "bitrate",0,
+				     NULL);
+		      }
+		    }
+		    else
+		      g_debug("Unable to get src pad\n");
+		    gst_object_unref(videosrc);
+		  }
+		  else
+		    g_debug("Unable to get videosrc element\n");
+		  gst_object_unref(videoenc);
+
+		}
+		else
+		  g_debug("Unable to get videoenc element\n");
+		break;
+	      }
 	    }
 	  }
 	}
@@ -391,6 +507,7 @@ _new_g_digicam_camerabin_descriptor(GstElement* bin)
     G_DIGICAM_FLASHMODE_FILLIN;
   descriptor->supported_resolutions =
     descriptor->supported_resolutions |
+    G_DIGICAM_RESOLUTION_HD           |
     G_DIGICAM_RESOLUTION_HIGH         |
     G_DIGICAM_RESOLUTION_MEDIUM       |
     G_DIGICAM_RESOLUTION_LOW;
@@ -542,12 +659,10 @@ camera_interface_set_scene_mode(CameraInterface* camera_interface, CamSceneMode 
       helper->exposure_mode = G_DIGICAM_EXPOSUREMODE_AUTO;
       focus_helper->focus_mode = G_DIGICAM_FOCUSMODE_NONE;
       break;
-      break;
     case CAM_SCENE_MODE_VIDEO:
       helper->exposure_mode = G_DIGICAM_EXPOSUREMODE_PORTRAIT;
       still_video_helper->mode = G_DIGICAM_MODE_VIDEO;
       break;
-
     case CAM_SCENE_MODE_NIGHT_VIDEO:
       helper->exposure_mode = G_DIGICAM_EXPOSUREMODE_NIGHT;
       still_video_helper->mode = G_DIGICAM_MODE_VIDEO;
@@ -635,12 +750,34 @@ camera_interface_set_video_resolution(CameraInterface* camera_interface, CamVide
     helper->resolution = G_DIGICAM_RESOLUTION_HIGH;
     helper->aspect_ratio = G_DIGICAM_ASPECTRATIO_16X9;
   }
-  
+  else if(resolution == CAM_VIDEO_RESOLUTION_DVD_4X3)
+  {
+    helper->resolution = G_DIGICAM_RESOLUTION_DVD;
+    helper->aspect_ratio = G_DIGICAM_ASPECTRATIO_4X3;
+  }
+  else if(resolution == CAM_VIDEO_RESOLUTION_DVD_16X9)
+  {
+    helper->resolution = G_DIGICAM_RESOLUTION_DVD;
+    helper->aspect_ratio = G_DIGICAM_ASPECTRATIO_16X9;
+  }
+  else if(resolution == CAM_VIDEO_RESOLUTION_HD_4X3)
+  {
+    helper->resolution = G_DIGICAM_RESOLUTION_HD;
+    helper->aspect_ratio = G_DIGICAM_ASPECTRATIO_4X3;
+  }
+  else if(resolution == CAM_VIDEO_RESOLUTION_HD_16X9)
+  {
+    helper->resolution = G_DIGICAM_RESOLUTION_HD;
+    helper->aspect_ratio = G_DIGICAM_ASPECTRATIO_16X9;
+  }  
+  g_digicam_manager_stop_bin(camera_interface->manager, &error);
   gboolean result = g_digicam_manager_set_aspect_ratio_resolution(camera_interface->manager,
 								  helper->aspect_ratio,
 								  helper->resolution,
 								  &error,
 								  helper);
+  if(result && camera_interface->viewfinder_window_id)
+    g_digicam_manager_play_bin(camera_interface->manager, camera_interface->viewfinder_window_id, &error);
   _print_result_message(result, &error, " set video resolution ");
   g_slice_free(GDigicamCamerabinAspectRatioResolutionHelper, helper);
   return result;
@@ -843,21 +980,34 @@ camera_interface_open_viewfinder(CameraInterface* camera_interface, gulong viewf
 {
   GError* error = NULL;
   camera_interface->viewfinder_window_id = viewfinder_window_id;
+
   gboolean result = 
     g_digicam_manager_play_bin(camera_interface->manager, viewfinder_window_id, &error);
-  {  
-    GstElement* bin = NULL;  
-    if(g_digicam_manager_get_gstreamer_bin(camera_interface->manager,  
-					   &bin,  
-					   NULL))  
-      {  
-	GstElement* driver = NULL;  
-	g_object_get(bin, "videosrc", &driver, NULL);  
+  {
+    GstElement* bin = NULL;
+    if(result && g_digicam_manager_get_gstreamer_bin(camera_interface->manager,
+					   &bin,
+					   NULL))
+      {
+	GstElement* videosrc = NULL;
 	gint device_fd = -1;
-	g_object_get(driver, "device-fd", &device_fd, NULL);  
-	camera_interface->video_fd = device_fd;
-      } 
-  }  
+	g_object_get(bin, "videosrc", &videosrc, NULL);
+	if(videosrc)
+	{
+	  g_object_get(videosrc, "device-fd", &device_fd, NULL);
+	  g_object_set(videosrc, "queue-size", 16, NULL);
+	  gst_object_unref(videosrc);
+	}
+	else
+	  g_debug("Unable to get videoenc element\n");
+	gst_object_unref(bin);
+	/* restart bin so queue size change to take effect */
+	g_digicam_manager_stop_bin(camera_interface->manager, &error);
+	g_digicam_manager_play_bin(camera_interface->manager, viewfinder_window_id, &error);
+      }
+      else
+	g_debug("Unable to get camera bin\n");
+  }
   _add_tag_listener(camera_interface);
   _print_result_message(result, &error, " open viewfinder ");
   return result;
@@ -907,12 +1057,21 @@ camera_interface_capture_image(CameraInterface* camera_interface, capture_data_t
   return result;
 }
 
+void camera_interface_set_priority(CamPriority camera_priority)
+{
+  if(camera_priority == CAM_PRIORITY_RECORDING)
+    system("sudo /usr/bin/camera-ui-set-priority 1");
+  else
+    system("sudo /usr/bin/camera-ui-set-priority 0");
+}
+
 gboolean
 camera_interface_start_recording(CameraInterface* camera_interface, capture_data_t capture_data)
 {
   GDigicamCamerabinVideoHelper* helper = NULL;
   GError* error = NULL;
   gboolean result;
+  camera_interface_set_priority(CAM_PRIORITY_RECORDING);
   helper = g_slice_new(GDigicamCamerabinVideoHelper);
   helper->file_path = capture_data.filename;
   helper->metadata = g_slice_new(GDigicamCamerabinMetadata);
@@ -949,6 +1108,7 @@ camera_interface_stop_recording(CameraInterface* camera_interface)
 						    helper);
   _print_result_message(result, &error, " stop recording ");
   g_slice_free(GDigicamCamerabinVideoHelper, helper);
+  camera_interface_set_priority(CAM_PRIORITY_IDLE);
   return result;
 }
 

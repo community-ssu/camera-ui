@@ -231,8 +231,19 @@ _update_remaining_count_indicator(CameraUI2Window* self)
       size /= 405;
       break;
     case CAM_VIDEO_RESOLUTION_HIGH:
-      size /= 460;
+      size /= 470;
       break;
+    case CAM_VIDEO_RESOLUTION_DVD_4X3:
+      size /= 896;
+      break;
+    case CAM_VIDEO_RESOLUTION_DVD_16X9:
+      size /= 1014;
+      break;
+    case CAM_VIDEO_RESOLUTION_HD_4X3:
+      size /= 1293;
+      break;
+    case CAM_VIDEO_RESOLUTION_HD_16X9:
+      size /= 1498;      break;
     }
     gchar* count_str = g_strdup_printf(REMAINING_RECORDING_TIME_FMT, (int)(size/60.0), (size%60));
     gtk_label_set_text(GTK_LABEL(self->priv->image_counter_label), count_str);
@@ -330,8 +341,9 @@ static void
 _set_video_resolution_size(CameraUI2Window* self, CamVideoResolution size)
 {
   if(camera_interface_set_video_resolution(self->priv->camera_interface,
-					   size))
+						size))
   { 
+    gtk_widget_queue_draw(self->priv->view_finder);
     self->priv->camera_settings.video_resolution_size = size;
     camera_ui2_set_gconf_video_resolution_size(size);
     gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->video_resolution_image),
@@ -1330,10 +1342,11 @@ _on_video_settings_button_release(GtkWidget* widget, GdkEventButton* event, gpoi
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   CameraSettings settings;
+  gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->video_settings_image), 
+				 settings_icon_name(FALSE), HILDON_ICON_SIZE_FINGER);
+
   if(event->x < 0 || event->y < 0 || event->x >= 64 || event->y >= 64)
   {
-    gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->video_settings_image), 
-				 settings_icon_name(FALSE), HILDON_ICON_SIZE_FINGER);
     return TRUE;
   }
   settings.scene_mode = self->priv->camera_settings.scene_mode;
@@ -2227,6 +2240,7 @@ _set_camera_settings(CameraUI2Window* self)
   if(is_video_mode(self->priv->camera_settings.scene_mode))
   {
     camera_interface_set_video_resolution(self->priv->camera_interface, self->priv->camera_settings.video_resolution_size);
+    gtk_widget_queue_draw(self->priv->view_finder);
     camera_interface_set_audio_mode(self->priv->camera_interface, self->priv->camera_settings.mic_mode);
   }
   else

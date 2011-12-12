@@ -25,6 +25,7 @@
 #include "camera-ui2-helper.h"
 #include "camera-ui2-settings-dialog.h"
 
+#define DSP_HDMP4_CODEC_FILE "/lib/dsp/m4vhdenc_sn.dll64P"
 
 static void
 _check_one_of(HildonCheckButton* button, gpointer user_data)
@@ -792,44 +793,94 @@ void
 show_video_resolution_size_selection_dialog(CameraSettings* settings)
 {
   GtkWidget* dialog = gtk_dialog_new();
+  gboolean hd_capable=g_file_test(DSP_HDMP4_CODEC_FILE,G_FILE_TEST_IS_REGULAR);
   gtk_window_set_title(GTK_WINDOW(dialog),(dgettext("osso-camera-ui", "camera_ti_resolution")));
-  GtkWidget* table_layout = gtk_table_new(2, 2, TRUE);
-  GtkWidget* video_resolution_size_vga_button = 
+  GtkWidget* table_layout = hd_capable?gtk_table_new(3, 2, TRUE):gtk_table_new(2, 2, TRUE);
+  GtkWidget* video_resolution_size_qvga_button =
     _create_radio_button(dgettext("osso-camera-ui", "camera_bd_resolution_video_low"),
-			 "camera_video_resolution_vga",
-			 settings->video_resolution_size == 6,
-			 NULL);
-  GtkWidget* video_resolution_size_qvga_button = 
-    _create_radio_button(dgettext("osso-camera-ui", "camera_bd_resolution_video_fine"),
 			 "camera_video_resolution_qvga",
-			 settings->video_resolution_size == 7,
-			 video_resolution_size_vga_button);
+			 settings->video_resolution_size == CAM_VIDEO_RESOLUTION_LOW,
+			 NULL);
+  GtkWidget* video_resolution_size_vga_button =
+    _create_radio_button(dgettext("osso-camera-ui", "camera_bd_resolution_video_fine"),
+			 "camera_video_resolution_vga",
+			 settings->video_resolution_size == CAM_VIDEO_RESOLUTION_MEDIUM,
+			 video_resolution_size_qvga_button);
   GtkWidget* video_resolution_size_wide_screen_button =
     _create_radio_button(dgettext("osso-camera-ui", "camera_bd_resolution_video_high"),
 			 "camera_video_resolution_wide_screen",
-			 settings->video_resolution_size == 8,
-			 video_resolution_size_qvga_button);
-
-  gtk_table_attach_defaults(GTK_TABLE(table_layout), video_resolution_size_wide_screen_button, 0, 1, 0, 1);
-  gtk_table_attach_defaults(GTK_TABLE(table_layout), video_resolution_size_qvga_button, 1, 2, 0, 1);
-  gtk_table_attach_defaults(GTK_TABLE(table_layout), video_resolution_size_vga_button, 0, 1, 1, 2);
-
+			 settings->video_resolution_size == CAM_VIDEO_RESOLUTION_HIGH,
+			 video_resolution_size_vga_button);
+  GtkWidget* video_resolution_size_hd_4x3_button = hd_capable?
+    _create_radio_button(dgettext("osso-camera-ui", "camera_bd_resolution_video_hd_4x3"),
+			 "camera_video_resolution_vga",
+			 settings->video_resolution_size == CAM_VIDEO_RESOLUTION_HD_4X3,
+			 video_resolution_size_wide_screen_button):NULL;
+  GtkWidget* video_resolution_size_hd_16x9_button = hd_capable?
+    _create_radio_button(dgettext("osso-camera-ui", "camera_bd_resolution_video_hd_16x9"),
+			 "camera_video_resolution_wide_screen",
+			 settings->video_resolution_size == CAM_VIDEO_RESOLUTION_HD_16X9,
+			 video_resolution_size_hd_4x3_button):NULL;
+  GtkWidget* video_resolution_size_dvd_4x3_button = hd_capable?
+    _create_radio_button(dgettext("osso-camera-ui", "camera_bd_resolution_video_dvd_4x3"),
+			 "camera_video_resolution_vga",
+			 settings->video_resolution_size == CAM_VIDEO_RESOLUTION_DVD_4X3,
+			 video_resolution_size_hd_4x3_button):NULL;
+  GtkWidget* video_resolution_size_dvd_16x9_button = hd_capable?
+    _create_radio_button(dgettext("osso-camera-ui", "camera_bd_resolution_video_dvd_16x9"),
+			 "camera_video_resolution_wide_screen",
+			 settings->video_resolution_size == CAM_VIDEO_RESOLUTION_DVD_16X9,
+			 video_resolution_size_dvd_4x3_button):NULL;
+  if(hd_capable)
+  {
+    gtk_table_attach_defaults(GTK_TABLE(table_layout), video_resolution_size_hd_16x9_button, 0, 1, 0, 1);
+    gtk_table_attach_defaults(GTK_TABLE(table_layout), video_resolution_size_hd_4x3_button, 1, 2, 0, 1);
+    gtk_table_attach_defaults(GTK_TABLE(table_layout), video_resolution_size_dvd_16x9_button, 0, 1, 1, 2);
+    gtk_table_attach_defaults(GTK_TABLE(table_layout), video_resolution_size_dvd_4x3_button, 1, 2, 1, 2);
+    gtk_table_attach_defaults(GTK_TABLE(table_layout), video_resolution_size_wide_screen_button, 0, 1, 2, 3);
+    gtk_table_attach_defaults(GTK_TABLE(table_layout), video_resolution_size_vga_button, 1, 2, 2, 3);
+    gtk_table_attach_defaults(GTK_TABLE(table_layout), video_resolution_size_qvga_button, 0, 1, 3, 4);
+   }
+  else
+  {
+    gtk_table_attach_defaults(GTK_TABLE(table_layout), video_resolution_size_wide_screen_button, 0, 1, 0, 1);
+    gtk_table_attach_defaults(GTK_TABLE(table_layout), video_resolution_size_vga_button, 1, 2, 0, 1);
+    gtk_table_attach_defaults(GTK_TABLE(table_layout), video_resolution_size_qvga_button, 0, 1, 1, 2);
+  }
   gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), table_layout, TRUE, TRUE, 0);
   
   g_signal_connect(video_resolution_size_vga_button, "toggled", G_CALLBACK(_close_dialog), dialog);
   g_signal_connect(video_resolution_size_qvga_button, "toggled", G_CALLBACK(_close_dialog), dialog);
   g_signal_connect(video_resolution_size_wide_screen_button, "toggled", G_CALLBACK(_close_dialog), dialog);
-
-  
+  if(hd_capable)
+  {
+    g_signal_connect(video_resolution_size_hd_4x3_button, "toggled", G_CALLBACK(_close_dialog), dialog);
+    g_signal_connect(video_resolution_size_hd_16x9_button, "toggled", G_CALLBACK(_close_dialog), dialog);
+    g_signal_connect(video_resolution_size_dvd_4x3_button, "toggled", G_CALLBACK(_close_dialog), dialog);
+    g_signal_connect(video_resolution_size_dvd_16x9_button, "toggled", G_CALLBACK(_close_dialog), dialog);
+  }
   gtk_widget_show_all(dialog);
   if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK)
   {
-    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(video_resolution_size_vga_button)))
-     settings->video_resolution_size = 6;
-    else if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(video_resolution_size_qvga_button)))
-      settings->video_resolution_size = 7;
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(video_resolution_size_qvga_button)))
+     settings->video_resolution_size = CAM_VIDEO_RESOLUTION_LOW;
+    else if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(video_resolution_size_vga_button)))
+      settings->video_resolution_size = CAM_VIDEO_RESOLUTION_MEDIUM;
     else if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(video_resolution_size_wide_screen_button)))
-      settings->video_resolution_size = 8;
+      settings->video_resolution_size = CAM_VIDEO_RESOLUTION_HIGH;
+    else if(hd_capable)
+    {
+      if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(video_resolution_size_hd_4x3_button)))
+        settings->video_resolution_size = CAM_VIDEO_RESOLUTION_HD_4X3;
+      else if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(video_resolution_size_hd_16x9_button)))
+        settings->video_resolution_size = CAM_VIDEO_RESOLUTION_HD_16X9;
+      else if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(video_resolution_size_dvd_4x3_button)))
+        settings->video_resolution_size = CAM_VIDEO_RESOLUTION_DVD_4X3;
+      else if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(video_resolution_size_dvd_16x9_button)))
+        settings->video_resolution_size = CAM_VIDEO_RESOLUTION_DVD_16X9;
+    }
+    else
+      settings->video_resolution_size = CAM_VIDEO_RESOLUTION_HIGH;
   }
   gtk_widget_destroy(dialog);
 }
@@ -971,7 +1022,7 @@ show_video_settings_dialog(CameraSettings* settings)
 
   hildon_button_set_title(HILDON_BUTTON(white_balance_button), dgettext("osso-camera-ui", "camera_bd_settings_wb"));
   hildon_button_set_title(HILDON_BUTTON(exposure_button), dgettext("osso-camera-ui", "camera_bd_settings_exposure"));
-  hildon_button_set_title(HILDON_BUTTON(resolution_button), video_resolution_size_name(settings->video_resolution_size)); 
+  hildon_button_set_title(HILDON_BUTTON(resolution_button), dgettext("osso-camera-ui", "camera_bd_settings_resolution"));
 
   gtk_button_set_alignment(GTK_BUTTON(white_balance_button), 0, 0.5);
   gtk_button_set_alignment(GTK_BUTTON(exposure_button), 0, 0.5);

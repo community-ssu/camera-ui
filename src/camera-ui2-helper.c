@@ -20,6 +20,7 @@
 #include <locale.h>
 #include "camera-ui2-helper.h"
 #include "camera-ui2-defines.h"
+#include "camera-settings.h"
 
 const gchar*
 scene_mode_icon_name(gint scene_mode, gboolean pressed)
@@ -112,12 +113,12 @@ still_resolution_size_name(gint still_resolution_size)
 const gchar*
 video_resolution_size_icon_name(gint video_resolution_size, gboolean pressed)
 {
-  if(video_resolution_size > 5 && video_resolution_size < 9)
+  if(video_resolution_size >=CAM_VIDEO_RESOLUTION_LOW && video_resolution_size <= CAM_VIDEO_RESOLUTION_DVD_16X9)
   {
     if(pressed)
-      return VIDEO_RESOLUTION_SIZE_ICON[video_resolution_size-6][1];
+      return VIDEO_RESOLUTION_SIZE_ICON[video_resolution_size - CAM_VIDEO_RESOLUTION_LOW][1];
     else
-      return VIDEO_RESOLUTION_SIZE_ICON[video_resolution_size-6][0];
+      return VIDEO_RESOLUTION_SIZE_ICON[video_resolution_size - CAM_VIDEO_RESOLUTION_LOW][0];
   }
   else
   {
@@ -128,8 +129,8 @@ video_resolution_size_icon_name(gint video_resolution_size, gboolean pressed)
 const gchar*
 video_resolution_size_name(gint video_resolution_size)
 {
-  if(video_resolution_size > 5 && video_resolution_size < 9)
-    return dgettext("osso-camera-ui", VIDEO_RESOLUTION_SIZE_NAME[video_resolution_size-6]);
+  if(video_resolution_size >= CAM_VIDEO_RESOLUTION_LOW && video_resolution_size <= CAM_VIDEO_RESOLUTION_DVD_16X9)
+    return dgettext("osso-camera-ui", VIDEO_RESOLUTION_SIZE_NAME[video_resolution_size-CAM_VIDEO_RESOLUTION_LOW]);
   else
     return NULL;
 }

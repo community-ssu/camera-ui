@@ -1,5 +1,7 @@
 #include <hildon/hildon.h>
 #include "camera-ui2-window.h"
+#include "camera-settings.h"
+#include "camera-interface.h"
 
 #include <libosso.h>
 #include <libhal.h>
@@ -54,6 +56,7 @@ int main(int argc, char** argv)
     g_thread_init(NULL);
   }
 
+  camera_interface_set_priority(CAM_PRIORITY_IDLE);
   data->program = HILDON_PROGRAM(hildon_program_get_instance());
   osso = osso_initialize(OSSO_SERVICE, VERSION, TRUE, NULL);
   hal_context = libhal_ctx_new();

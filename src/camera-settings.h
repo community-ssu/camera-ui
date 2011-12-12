@@ -90,6 +90,10 @@ typedef enum {
   CAM_VIDEO_RESOLUTION_LOW = 6,
   CAM_VIDEO_RESOLUTION_MEDIUM = 7,
   CAM_VIDEO_RESOLUTION_HIGH = 8,
+  CAM_VIDEO_RESOLUTION_HD_4X3 = 9,
+  CAM_VIDEO_RESOLUTION_HD_16X9 = 10,
+  CAM_VIDEO_RESOLUTION_DVD_4X3 = 11,
+  CAM_VIDEO_RESOLUTION_DVD_16X9 = 12,
 } CamVideoResolution;
 
 typedef enum {
@@ -127,14 +131,18 @@ typedef enum {
   CAM_VIDEO_STATE_STOPPED = 0,
   CAM_VIDEO_STATE_PAUSED = 1,
   CAM_VIDEO_STATE_RECORDING = 2,
-}VideoState;
+} VideoState;
 
 typedef enum {
   CAM_BACK_CAM = 0,
   CAM_FRONT_CAM = 1,
-}Camera;
+} Camera;
 
-  
+typedef enum {
+  CAM_PRIORITY_IDLE = 0,
+  CAM_PRIORITY_RECORDING = 1,
+} CamPriority;
+
 struct _CameraSettings
 {
   gint scene_mode;
