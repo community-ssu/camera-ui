@@ -734,6 +734,7 @@ camera_interface_set_video_resolution(CameraInterface* camera_interface, CamVide
 {
   GDigicamCamerabinAspectRatioResolutionHelper* helper = NULL;
   GError* error = NULL;
+  gboolean digital=TRUE;
   helper = g_slice_new(GDigicamCamerabinAspectRatioResolutionHelper);
   if(resolution == CAM_VIDEO_RESOLUTION_LOW)
   {
@@ -769,7 +770,8 @@ camera_interface_set_video_resolution(CameraInterface* camera_interface, CamVide
   {
     helper->resolution = G_DIGICAM_RESOLUTION_HD;
     helper->aspect_ratio = G_DIGICAM_ASPECTRATIO_16X9;
-  }  
+  }
+  _set_zoom_level(camera_interface->manager,1.0,&digital);
   g_digicam_manager_stop_bin(camera_interface->manager, &error);
   gboolean result = g_digicam_manager_set_aspect_ratio_resolution(camera_interface->manager,
 								  helper->aspect_ratio,
@@ -1169,14 +1171,15 @@ camera_interface_enable_preview(CameraInterface* camera_interface, gboolean enab
 }
 
 gdouble
-camera_interface_increase_zoom(CameraInterface* camera_interface)
+camera_interface_increase_zoom(CameraInterface* camera_interface,gdouble max_zoom)
 {
-  gdouble zoom = 1;
+  gdouble zoom = max_zoom;
   gboolean digital = TRUE;
   _get_zoom_level(camera_interface->manager, &zoom, &digital);
-  if(zoom+0.1<=6)
+
+  if(max_zoom>zoom)
   {
-    zoom +=0.1;
+    zoom += (max_zoom-1.0)/50.0;
     _set_zoom_level(camera_interface->manager, zoom, digital);
   }
   return zoom;

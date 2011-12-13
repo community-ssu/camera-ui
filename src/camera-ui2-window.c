@@ -121,6 +121,7 @@ struct _CameraUI2WindowPrivate
   capture_data_t ccapture_data;  
   gboolean lenscover_open;
   DBusConnection *sysbus_conn;
+  gdouble max_zoom;
 };
 
 #define CAMERA_UI2_WINDOW_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), CAMERA_UI2_TYPE_WINDOW, CameraUI2WindowPrivate))
@@ -322,6 +323,27 @@ _set_preview_mode(CameraUI2Window* self, CamPreviewMode preview_mode)
     camera_ui2_set_gconf_preview_mode(preview_mode);
   }
 }
+static void
+_update_zoom_slider_range(CameraUI2Window * self)
+{
+  gdouble max_video_zoom_levels[CAM_VIDEO_RESOLUTION_DVD_16X9-CAM_VIDEO_RESOLUTION_LOW+1]=
+    { 6 , 6 , 6 , 5.2 , 3.6, 6 , 4.8 };
+  
+  gdouble max_still_image_zoom_levels[CAM_STILL_RESOLUTION_WIDE+1]=
+    { 6 , 6 , 6 , 6 };
+  
+  if(is_video_mode(self->priv->camera_settings.scene_mode))
+    self->priv->max_zoom=max_video_zoom_levels[self->priv->camera_settings.video_resolution_size-CAM_VIDEO_RESOLUTION_LOW];
+  else
+    self->priv->max_zoom=max_still_image_zoom_levels[self->priv->camera_settings.still_resolution_size];
+  if(GTK_IS_RANGE(self->priv->zoom_slider))
+  {
+    gtk_range_set_value(GTK_RANGE(self->priv->zoom_slider), 1.0);
+    gtk_range_set_range(GTK_RANGE(self->priv->zoom_slider), 1.0, self->priv->max_zoom);
+    gtk_range_set_increments(GTK_RANGE(self->priv->zoom_slider),
+                             (self->priv->max_zoom-1.0)/50.0,0);
+  }
+}
 
 static void
 _set_still_resolution_size(CameraUI2Window* self, CamStillResolution size)
@@ -334,6 +356,7 @@ _set_still_resolution_size(CameraUI2Window* self, CamStillResolution size)
     gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->still_resolution_image),
 				 still_resolution_size_icon_name(size, FALSE), HILDON_ICON_SIZE_STYLUS);
     _update_remaining_count_indicator(self);
+    _update_zoom_slider_range(self);
   }
 }
 
@@ -349,6 +372,7 @@ _set_video_resolution_size(CameraUI2Window* self, CamVideoResolution size)
     gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->video_resolution_image),
 				 video_resolution_size_icon_name(size, FALSE), HILDON_ICON_SIZE_STYLUS);
     _update_remaining_count_indicator(self);
+    _update_zoom_slider_range(self);
   }
 }
 
@@ -1343,8 +1367,7 @@ _on_video_settings_button_release(GtkWidget* widget, GdkEventButton* event, gpoi
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   CameraSettings settings;
   gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->video_settings_image), 
-				 settings_icon_name(FALSE), HILDON_ICON_SIZE_FINGER);
-
+                               settings_icon_name(FALSE), HILDON_ICON_SIZE_FINGER);
   if(event->x < 0 || event->y < 0 || event->x >= 64 || event->y >= 64)
   {
     return TRUE;
@@ -1417,7 +1440,7 @@ _on_key_pressed(GtkWidget* widget, GdkEventKey* event, gpointer user_data)
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
   if(event->keyval == HILDON_HARDKEY_INCREASE)
   {
-    gdouble new_zoom = camera_interface_increase_zoom(self->priv->camera_interface);
+    gdouble new_zoom = camera_interface_increase_zoom(self->priv->camera_interface,self->priv->max_zoom);
     gtk_range_set_value(GTK_RANGE(self->priv->zoom_slider), new_zoom);
     return TRUE;
   }
@@ -1455,7 +1478,7 @@ _on_key_pressed(GtkWidget* widget, GdkEventKey* event, gpointer user_data)
       break;
     case GDK_Z:
       {
-	gdouble new_zoom = camera_interface_increase_zoom(self->priv->camera_interface);
+	gdouble new_zoom = camera_interface_increase_zoom(self->priv->camera_interface,self->priv->max_zoom);
 	gtk_range_set_value(GTK_RANGE(self->priv->zoom_slider), new_zoom);
       }
       break;
@@ -2150,9 +2173,11 @@ _init_menu(CameraUI2Window* self)
 }
 
 GtkWidget*
-_create_zoom_slider()
+_create_zoom_slider(CameraUI2Window* self)
 {
-  GtkWidget* vslider = gtk_vscale_new_with_range(1, 6, 0.1);
+  GtkWidget* vslider = gtk_vscale_new_with_range(1,
+                                                 self->priv->max_zoom,
+                                                 (self->priv->max_zoom-1.0)/50.0);
   gtk_rc_parse_string(
 		      "style \"fremantle-zoombar\" {\n"
 		      "GtkScale::slider-length = 34\n"
@@ -2252,6 +2277,7 @@ _set_camera_settings(CameraUI2Window* self)
   camera_interface_enable_preview(self->priv->camera_interface, 
 				  self->priv->save_raw_image || 
 				  self->priv->camera_settings.preview_mode != CAM_PREVIEW_MODE_NO_PREVIEW);
+  _update_zoom_slider_range(self);
 }
 
 static void
@@ -2622,7 +2648,7 @@ camera_ui2_window_init(CameraUI2Window* self)
 
   self->priv->crosshair = gtk_image_new_from_icon_name("camera_crosshair_white", 216);
 
-  self->priv->zoom_slider = _create_zoom_slider();
+  self->priv->zoom_slider = _create_zoom_slider(self);
 
   gtk_box_pack_start(GTK_BOX(self->priv->right_button_box), self->priv->close_window_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(right_button_box2), self->priv->scene_mode_button, TRUE, FALSE, 0);

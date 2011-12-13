@@ -101,7 +101,7 @@ gboolean
 camera_interface_enable_preview(CameraInterface* camera_interface, gboolean enable);
 
 gdouble
-camera_interface_increase_zoom(CameraInterface* camera_interface);
+camera_interface_increase_zoom(CameraInterface* camera_interface,gdouble max_zoom);
 
 gdouble
 camera_interface_decrease_zoom(CameraInterface* camera_interface);
