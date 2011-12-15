@@ -998,6 +998,7 @@ camera_interface_open_viewfinder(CameraInterface* camera_interface, gulong viewf
 	{
 	  g_object_get(videosrc, "device-fd", &device_fd, NULL);
 	  g_object_set(videosrc, "queue-size", 16, NULL);
+	  camera_interface->video_fd = device_fd;
 	  gst_object_unref(videosrc);
 	}
 	else
