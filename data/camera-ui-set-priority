@@ -1,10 +1,24 @@
 #!/bin/sh
 if [ "$1" == "1" ]; then
-    tracker-processes -t
+    run-standalone.sh dbus-send --print-reply --type=method_call --dest=org.freedesktop.Tracker.Indexer /org/freedesktop/Tracker/Indexer org.freedesktop.Tracker.Indexer.Pause
+    run-standalone.sh dbus-send --print-reply --type=method_call --dest=org.freedesktop.Tracker /org/freedesktop/Tracker org.freedesktop.Tracker.SetBoolOption string:"Pause" boolean:true
+    killall gst-video-thumbnailerd
+
+    echo `pidof Xorg` > /syspart/tasks
+    echo `pidof omap3camd` > /syspart/tasks
+    echo `pidof camera-ui` > /syspart/tasks
+
     renice 20 `pidof camera-ui`
     renice 20 `pidof Xorg`
     renice 20 `pidof omap3camd`
 else
+    run-standalone.sh dbus-send --print-reply --type=method_call --dest=org.freedesktop.Tracker.Indexer /org/freedesktop/Tracker/Indexer org.freedesktop.Tracker.Indexer.Continue
+    run-standalone.sh dbus-send --print-reply --type=method_call --dest=org.freedesktop.Tracker /org/freedesktop/Tracker org.freedesktop.Tracker.SetBoolOption string:"Pause" boolean:false
+
+    echo `pidof Xorg` > /syspart/tasks
+    echo `pidof omap3camd` > /syspart/applications/standby/background/tasks
+    echo `pidof camera-ui` > /syspart/applications/standby/background/tasks
+
     renice 0 `pidof camera-ui`
     renice -8 `pidof Xorg`
     renice 0 `pidof omap3camd`
