@@ -200,16 +200,15 @@ _add_tag_listener(CameraInterface* camera_interface)
 
 /*
   Can be used to calculate bitrate based on resolution and target quality.  
-  Coefficients retrieved from gst-dsp. Unused by now.
+  Coefficients retrieved from gst-dsp and adopted for HD codecs.
 */
-#if 0
 static guint
-calc_bitrate(GstPad * pad)
+calc_hd_bitrate(GstPad * pad)
 {
   float bits_per_pixel = 0.2, scale;
   guint ref_bitrate,bitrate = 0;
   const guint reference_fps = 15;
-  const float quality = 1.2;
+  const float quality = 2.8;
   guint height = 0, width = 0;
   float framerate=0;
   GstCaps *caps;
@@ -239,7 +238,7 @@ calc_bitrate(GstPad * pad)
 
   return bitrate;
 }
-#endif
+
 /*
   I want to handle the bus messages our self. So I can catch the raw image buffer
   from the camdriver. All the rest is copied from gdigicams handle_bus_message_func,
@@ -310,9 +309,6 @@ _handle_bus_message_func(GDigicamManager *manager,
 		    GstPad * srcpad=gst_element_get_static_pad (videosrc,"src");
 		    if(srcpad)
 		    {
-		      /*
-		      guint bitrate = calc_bitrate(srcpad);
-		      */
 		      gst_object_unref (GST_OBJECT (srcpad));
 		      gchar * videoenc_name = NULL;
 		      g_object_get(videoenc,"name",&videoenc_name,NULL);
@@ -320,15 +316,16 @@ _handle_bus_message_func(GDigicamManager *manager,
 		      {
 			if(g_str_has_prefix(videoenc_name,"dsphdmp4venc"))
 			{
+			  guint bitrate = calc_hd_bitrate(srcpad);
 			  g_object_set(videoenc,
-				       "max-bitrate",0,
-				       NULL);
-			  g_object_set(videoenc,
-				       "bitrate",-1,
-				       NULL);
-			  /*g_object_set(videoenc,
 				       "intra-refresh",1,
-				       NULL);*/
+				       NULL);
+			  g_object_set(videoenc,
+				       "max-bitrate",bitrate,
+				       NULL);
+			  g_object_set(videoenc,
+				       "bitrate",bitrate,
+				       NULL);
 			}
 			else
 			  g_object_set(videoenc,
