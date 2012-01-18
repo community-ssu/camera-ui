@@ -1,3 +1,10 @@
+camera-ui (1.1.29.2+0cssu10) unstable; urgency=low
+
+  * Pause tracker when recording.
+  * Use bitrate calculations for HD resolutions.
+
+ -- Mohammad Abu-Garbeyyeh <mohammad7410@gmail.com>  Mon, 02 Jan 2012 15:39:33 +0200
+
 camera-ui (1.1.29.2+0cssu9) unstable; urgency=low
 
   * possible fix for bug 12516 (better handling of unwritable
