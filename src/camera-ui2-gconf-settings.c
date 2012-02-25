@@ -17,6 +17,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include "camera-ui2-gconf-settings.h"
+#include "camera-settings.h"
 #include <time.h>
 #include <gconf/gconf-client.h>
 
@@ -241,6 +242,8 @@ camera_ui2_get_gconf_storage_device()
   gint ret = 0;
   g_assert(GCONF_IS_CLIENT(client));
   ret = gconf_client_get_int(client, GC_STORAGE_DEVICE_KEY, NULL);
+  if(ret < 0)
+    ret = CAM_STORAGE_INTERN;
   g_object_unref(client);
   return ret;
 }

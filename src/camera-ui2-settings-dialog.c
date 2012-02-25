@@ -206,7 +206,7 @@ show_storage_settings_dialog(CameraSettings* settings)
   hildon_picker_button_set_selector(HILDON_PICKER_BUTTON(preview_button), HILDON_TOUCH_SELECTOR(preview_selector));
   if(settings->storage_device == CAM_STORAGE_EXTERN_UNAVAILABLE)
   {
-    hildon_touch_selector_set_active(HILDON_TOUCH_SELECTOR(storage_selector), 0, 0);
+    hildon_touch_selector_set_active(HILDON_TOUCH_SELECTOR(storage_selector), 0, CAM_STORAGE_INTERN);
   }
   else
   {
@@ -230,7 +230,8 @@ show_storage_settings_dialog(CameraSettings* settings)
   {
     g_free(settings->author);
     settings->author = g_strdup(gtk_entry_get_text(GTK_ENTRY(author_entry)));
-    settings->storage_device = hildon_touch_selector_get_active(HILDON_TOUCH_SELECTOR(storage_selector), 0);
+    if(storage_helper_mmc_user_writable())
+      settings->storage_device = hildon_touch_selector_get_active(HILDON_TOUCH_SELECTOR(storage_selector), 0);
     settings->preview_mode = hildon_touch_selector_get_active(HILDON_TOUCH_SELECTOR(preview_selector), 0);
   }
   gtk_widget_destroy(dialog);
