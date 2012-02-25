@@ -1,3 +1,10 @@
+camera-ui (1.1.29.2+0cssu11) unstable; urgency=low
+
+  * fixed bug "not enough memory" if memory card is not
+    available
+
+ -- Mohammad Abu-Garbeyyeh <mohammad7410@gmail.com>  Sat, 25 Feb 2012 17:32:21 +0100
+
 camera-ui (1.1.29.2+0cssu10) unstable; urgency=low
 
   * Pause tracker when recording.
