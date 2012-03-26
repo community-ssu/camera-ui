@@ -127,10 +127,10 @@ const gchar* VIDEO_RESOLUTION_SIZE_NAME[] =
   {"camera_bd_resolution_video_low",
    "camera_bd_resolution_video_fine",
    "camera_bd_resolution_video_high",
-   "camera_bd_resolution_video_dvd_4x3",
-   "camera_bd_resolution_video_dvd_16x9",
    "camera_bd_resolution_video_hd_4x3",
-   "camera_bd_resolution_video_hd_16x9"
+   "camera_bd_resolution_video_hd_16x9",
+   "camera_bd_resolution_video_dvd_4x3",
+   "camera_bd_resolution_video_dvd_16x9"
   };
 
 const gchar* VIDEO_MIC_MODE_ICON[][2] = 
