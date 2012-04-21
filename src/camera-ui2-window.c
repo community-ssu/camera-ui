@@ -1781,6 +1781,7 @@ _on_preview_window_hide(GtkWidget *widget, gpointer user_data)
     gtk_widget_show(self->priv->view_finder); 
     camera_interface_open_viewfinder(self->priv->camera_interface, 
 				     GDK_WINDOW_XWINDOW(self->priv->view_finder->window)); 
+    gtk_widget_queue_draw(self->priv->view_finder);
   }
 }
 
