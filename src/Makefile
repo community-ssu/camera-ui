@@ -27,13 +27,13 @@ OBJS=camera-main.o\
 BUILDDIR=../build
 BIN=$(BUILDDIR)/camera-ui
 CC=gcc
-PKG_FLAGS=$(shell pkg-config glib-2.0 hildon-1 libhildondesktop-1 libosso gdigicam-0.3 gdigicam-gst-camerabin-0.3 mce sharingdialog liblocation navigation hal gnome-vfs-2.0 libcanberra profile libhildonmime --libs --cflags)
+PKG_FLAGS=$(shell pkg-config maemo-launcher-app glib-2.0 hildon-1 libhildondesktop-1 libosso gdigicam-0.3 gdigicam-gst-camerabin-0.3 mce sharingdialog liblocation navigation hal gnome-vfs-2.0 libcanberra profile libhildonmime --libs --cflags)
 CFLAGS := $(CFLAGS) -DGST_USE_UNSTABLE_API
 
 all:$(BIN) $(LIB)
 
 $(BIN):$(OBJS)
-	$(CC) $(CFLAGS) $(PKG_FLAGS) $(OBJS) -o $(BIN)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(PKG_FLAGS) $(OBJS) -o $(BIN)
 
 .c.o:
 	$(CC) $(CFLAGS) $(PKG_FLAGS) -c $< -o $@

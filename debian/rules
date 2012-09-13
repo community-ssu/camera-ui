@@ -7,12 +7,14 @@
 # This special exception was added by Craig Small in version 0.37 of dh-make.
 
 # Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+# export DH_VERBOSE=1
 
+CFLAGS = -Werror -Wall -Wno-error=format-extra-args -g
 
-
-
-CFLAGS = -Wall -g
+ifneq (,$(findstring nolauncher,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -shared
+	LDFLAGS += -shared -rdynamic
+endif
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -O0
@@ -25,6 +27,7 @@ ifneq (,$(findstring thumb,$(DEB_BUILD_OPTIONS)))
 endif
 
 export CFLAGS
+export LDFLAGS
 
 configure: configure-stamp
 configure-stamp:
@@ -63,23 +66,22 @@ install: build
 
 	# Add here commands to install the package into debian/camera-ui.
 	$(MAKE) DESTDIR=$(CURDIR)/debian/camera-ui install
-	# For some reason, dh_strip isn't working as it should...
-	strip $(CURDIR)/debian/camera-ui/usr/bin/camera-ui
-	$(MAKE) DESTDIR=$(CURDIR)/debian/camera-ui-dbg debug
 
+	#use maemo launcher
+	dh_maemolauncher
 
 # Build architecture-independent files here.
-binary-indep: build install
+binary-indep: install
 # We have nothing to do by default.
 
 # Build architecture-dependent files here.
-binary-arch: build install
+binary-arch: install
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs
 	dh_installdocs
 	dh_installexamples
-#	dh_install
+	dh_install -s
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate
@@ -92,7 +94,7 @@ binary-arch: build install
 #	dh_installinfo
 	dh_installman
 	dh_link
-	dh_strip
+	dh_strip --dbg-package=camera-ui
 	dh_compress
 	dh_fixperms
 #	dh_perl
