@@ -33,7 +33,7 @@ CFLAGS := $(CFLAGS) -DGST_USE_UNSTABLE_API
 all:$(BIN) $(LIB)
 
 $(BIN):$(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(PKG_FLAGS) $(OBJS) -o $(BIN)
+	$(CC) $(CFLAGS) $(PKG_FLAGS) $(OBJS) -o $(BIN)
 
 .c.o:
 	$(CC) $(CFLAGS) $(PKG_FLAGS) -c $< -o $@

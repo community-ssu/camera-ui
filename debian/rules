@@ -11,9 +11,8 @@
 
 CFLAGS = -Werror -Wall -Wno-error=format-extra-args -g
 
-ifneq (,$(findstring nolauncher,$(DEB_BUILD_OPTIONS)))
-	CFLAGS += -shared
-	LDFLAGS += -shared -rdynamic
+ifeq (,$(findstring nolauncher,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -shared -rdynamic
 endif
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
@@ -27,7 +26,6 @@ ifneq (,$(findstring thumb,$(DEB_BUILD_OPTIONS)))
 endif
 
 export CFLAGS
-export LDFLAGS
 
 configure: configure-stamp
 configure-stamp:
