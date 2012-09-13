@@ -2882,7 +2882,7 @@ camera_ui2_window_focus_button_pressed(CameraUI2Window* self)
 	  _show_hide_ui(self, FALSE);
       }
     }
-    if(_is_topmost_window(self->priv->preview_window))
+    if(_is_topmost_window((CameraUI2Window*)self->priv->preview_window))
     {
       gtk_widget_hide(GTK_WIDGET(self->priv->preview_window));
     }
