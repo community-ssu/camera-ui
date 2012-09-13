@@ -28,15 +28,15 @@ BUILDDIR=../build
 BIN=$(BUILDDIR)/camera-ui
 CC=gcc
 PKG_FLAGS=$(shell pkg-config glib-2.0 hildon-1 libhildondesktop-1 libosso gdigicam-0.3 gdigicam-gst-camerabin-0.3 mce sharingdialog liblocation navigation hal gnome-vfs-2.0 libcanberra profile libhildonmime --libs --cflags)
-CCFLAGS=-DGST_USE_UNSTABLE_API -g
+CFLAGS := $(CFLAGS) -DGST_USE_UNSTABLE_API
 
 all:$(BIN) $(LIB)
 
 $(BIN):$(OBJS)
-	$(CC) $(CCFLAGS) $(PKG_FLAGS) $(OBJS) -o $(BIN)
+	$(CC) $(CFLAGS) $(PKG_FLAGS) $(OBJS) -o $(BIN)
 
 .c.o:
-	$(CC) $(CCFLAGS) $(PKG_FLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(PKG_FLAGS) -c $< -o $@
 
 .PHONE: clean all
 
