@@ -2289,6 +2289,9 @@ _on_preview_image(GDigicamManager *digicam_manager,
   CameraUI2Window* self = CAMERA_UI2_WINDOW(data);
   int width = gdk_pixbuf_get_width(preview);
   int height = gdk_pixbuf_get_height(preview);
+
+  g_object_ref(self->priv->preview);
+  
   if(!is_video_mode(self->priv->camera_settings.scene_mode) && self->priv->save_raw_image)
   {
     gchar* name = g_strdup_printf("%s.dng",self->priv->ccapture_data.filename);

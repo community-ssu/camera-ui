@@ -373,7 +373,6 @@ camera_ui2_preview_window_show_preview(CameraUI2PreviewWindow* self,
   if(self->priv->preview)
     g_object_unref(self->priv->preview);
   self->priv->preview = preview;
-  g_object_ref(self->priv->preview);
 
   gtk_image_set_from_icon_name(GTK_IMAGE(self->priv->delete_image_image), 
 			       "camera_delete", HILDON_ICON_SIZE_THUMB);
