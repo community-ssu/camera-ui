@@ -1,3 +1,11 @@
+camera-ui (1.1.29.2+0cssu14) unstable; urgency=low
+
+  * Fix packaging.
+  * use maemo-invoker
+  * code cleanup
+
+ -- Ivaylo Dimitrov <freemangordon@abv.bg>  Tue, 13 Sep 2012 16:34:17 +0300
+
 camera-ui (1.1.29.2+0cssu13) unstable; urgency=low
 
   * fixed bug: viewfinder isn't shown after deleted current image
