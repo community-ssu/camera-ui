@@ -6,13 +6,18 @@ Build-Depends: debhelper (>= 5), libgtk2.0-dev, libhildon1-dev, libdbus-1-dev,
  libgconf2-dev, libosso-dev, libgdigicam-dev (>=0.3.29.2), libgdigicam-gst-camerabin-dev (>=0.3.29.2),
  libcanberra-dev, libprofile-dev, linux-kernel-headers, libhildondesktop1-dev,
  libhal-dev, mce-dev, liblocation-dev, libnavigation-dev, sharing-dialog-dev,
- gstreamer0.10-plugins-camera-dev, libgstreamer-plugins-base0.10-dev, libhildonmime-dev
+ gstreamer0.10-plugins-camera-dev, libgstreamer-plugins-base0.10-dev, libhildonmime-dev,
+ maemo-launcher-dev, osso-af-settings
 Standards-Version: 3.7.2
 
 Package: camera-ui
 Architecture: any
 Section: misc
-Depends: ${shlibs:Depends}, ${misc:Depends}, policy-l10n-mr | policy-l10n-mr0, hildon-status-bar-usb-l10n-mr | hildon-status-bar-usb-l10n-mr0, osso-camera-ui-l10n-mr0 | osso-camera-ui-l10n-mr, hildon-fm-l10n-mr0 | hildon-fm-l10n-mr, hildon-common-strings-l10n-mr0 | hildon-common-strings-l10n-mr, hildon-libs-l10n-mr0 | hildon-libs-l10n-mr, hildon-common-strings-l10n-mr0 | hildon-common-strings-l10n-mr, hildon-libs-l10n-mr0 | hildon-libs-l10n-mr, profile-data, hildon-status-bar-usb-l10n-mr | hildon-status-bar-usb-l10n-mr0, policy-l10n-mr | policy-l10n-mr0
+Depends: ${shlibs:Depends}, ${misc:Depends}, policy-l10n-mr | policy-l10n-mr0, hildon-status-bar-usb-l10n-mr | hildon-status-bar-usb-l10n-mr0,
+ osso-camera-ui-l10n-mr0 | osso-camera-ui-l10n-mr, hildon-fm-l10n-mr0 | hildon-fm-l10n-mr,
+ hildon-common-strings-l10n-mr0 | hildon-common-strings-l10n-mr, hildon-libs-l10n-mr0 | hildon-libs-l10n-mr,
+ hildon-common-strings-l10n-mr0 | hildon-common-strings-l10n-mr, hildon-libs-l10n-mr0 | hildon-libs-l10n-mr,
+ profile-data, hildon-status-bar-usb-l10n-mr | hildon-status-bar-usb-l10n-mr0, policy-l10n-mr | policy-l10n-mr0
 Description: Camera UI application
  camera-ui is an application intended to work as a modern digital
  camera, taking high resolution pictures and recording video.
