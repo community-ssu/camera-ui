@@ -17,7 +17,8 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, policy-l10n-mr | policy-l10n-mr0, h
  osso-camera-ui-l10n-mr0 | osso-camera-ui-l10n-mr, hildon-fm-l10n-mr0 | hildon-fm-l10n-mr,
  hildon-common-strings-l10n-mr0 | hildon-common-strings-l10n-mr, hildon-libs-l10n-mr0 | hildon-libs-l10n-mr,
  hildon-common-strings-l10n-mr0 | hildon-common-strings-l10n-mr, hildon-libs-l10n-mr0 | hildon-libs-l10n-mr,
- profile-data, hildon-status-bar-usb-l10n-mr | hildon-status-bar-usb-l10n-mr0, policy-l10n-mr | policy-l10n-mr0
+ profile-data, hildon-status-bar-usb-l10n-mr | hildon-status-bar-usb-l10n-mr0, policy-l10n-mr | policy-l10n-mr0,
+ kernel-feature-errata-430973-workaround[armel]
 Description: Camera UI application
  camera-ui is an application intended to work as a modern digital
  camera, taking high resolution pictures and recording video.
