@@ -18,6 +18,7 @@
  */
 #include "storage-helper.h"
 #include "camera-ui2-gconf-settings.h"
+#include "camera-ui2-helper.h"
 #include <locale.h>
 #include <libintl.h>
 #include <stdio.h>
@@ -25,6 +26,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <glib.h>
+#include <glib/gstdio.h>
+#include <hildon/hildon-banner.h>
 
 gboolean
 storage_helper_mmc_user_writable()
@@ -75,7 +78,6 @@ _find_unused_filename(const gchar* path,
 {
   gchar* filename = NULL;
   int trials = 0;
-  FILE* fd = NULL;
   struct stat stat_buf;
   int stat_ret = 0;
 
@@ -136,7 +138,7 @@ storage_helper_create_filename(CamStorageDevice storage_device,
     return NULL;
   }
   gchar* time_prefix = format_time_string();
-  guint last_media_id = camera_ui2_get_gconf_last_media_id();
+  camera_ui2_get_gconf_last_media_id();
   filename = _find_unused_filename(path, time_prefix, is_video_mode(scene_mode));
   g_free(path);
   g_free(time_prefix);
@@ -193,9 +195,8 @@ storage_helper_free_space(CamStorageDevice storage_device)
 
   if (volume_uri != NULL)
   {
-    GnomeVFSResult ret = 
-      gnome_vfs_get_volume_free_space(volume_uri,
-				      &size);
+    gnome_vfs_get_volume_free_space(volume_uri,
+				    &size);
     gnome_vfs_uri_unref(volume_uri);
   }
   return size;

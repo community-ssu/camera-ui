@@ -45,4 +45,23 @@ show_iso_level_selection_dialog(CamIsoLevel* iso_level);
 
 void
 show_geotagging_selection_dialog(GeoTagMode* mode);
+
+void
+show_still_resolution_size_selection_dialog(CamStillResolution* still_resolution_size);
+
+void
+show_video_settings_dialog(CameraSettings* settings);
+
+void
+show_video_resolution_size_selection_dialog(CameraSettings* settings);
+
+void
+show_still_settings_dialog(CameraSettings* settings);
+
+void
+show_storage_settings_dialog(CameraSettings* settings);
+
+void
+show_geotagging_settings_dialog(GeoTagMode* geo_tag_mode);
+
 #endif

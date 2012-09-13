@@ -1298,6 +1298,7 @@ _on_capture_timer_button_release(GtkWidget* widget, GdkEventButton* event, gpoin
 				   "general_clock", HILDON_ICON_SIZE_FINGER);
     }
   }
+  return TRUE;
 }
 
 static gboolean
@@ -1883,7 +1884,6 @@ _init_color_mode_button(CameraUI2Window* self)
   gtk_widget_set_size_request(self->priv->color_mode_button, 64, 64);
   gtk_event_box_set_visible_window(GTK_EVENT_BOX(self->priv->color_mode_button),
 				   FALSE);
-  gint color_mode = self->priv->camera_settings.color_mode;
   self->priv->color_mode_image = 
     gtk_image_new_from_icon_name("control_led", HILDON_ICON_SIZE_FINGER);
 
@@ -2287,7 +2287,6 @@ _on_preview_image(GDigicamManager *digicam_manager,
 		  gpointer data)
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(data);
-  GtkWidget* image = gtk_image_new_from_pixbuf(preview);
   int width = gdk_pixbuf_get_width(preview);
   int height = gdk_pixbuf_get_height(preview);
   if(!is_video_mode(self->priv->camera_settings.scene_mode) && self->priv->save_raw_image)
@@ -2386,6 +2385,7 @@ _on_picture_got(GDigicamManager* digicam_manager,
 		gpointer user_data)
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
+  (void)self;
 }
 
 static void
@@ -2453,6 +2453,7 @@ _on_top_changed(HildonWindow* window,
 		gpointer user_data)
 {
   CameraUI2Window* self = CAMERA_UI2_WINDOW(user_data);
+  (void)self;
 }
 
 static gboolean

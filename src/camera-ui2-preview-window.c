@@ -23,7 +23,8 @@
 #include <libintl.h>
 #include <sharing-dialog.h>
 #include <math.h>
-
+#include <glib.h>
+#include <glib/gstdio.h>
 struct _CameraUI2PreviewWindowPrivate
 {
   osso_context_t* osso;
@@ -197,6 +198,7 @@ _on_delete_image_button_release(GtkWidget* widget, GdkEventButton* event, gpoint
   return TRUE;
 }
 
+#if 0
 static gboolean
 _on_preview_expose(GtkWidget* widget, GdkEventExpose* event, gpointer user_data)
 {
@@ -215,6 +217,7 @@ _on_preview_expose(GtkWidget* widget, GdkEventExpose* event, gpointer user_data)
   }
   return FALSE;
 }
+#endif
 
 static gboolean
 _on_preview_button_release(GtkWidget* widget, GdkEventButton* event, gpointer user_data)

@@ -125,4 +125,10 @@ camera_ui2_get_gconf_enabled_sound_effects();
 void
 camera_ui2_set_gconf_enabled_sound_effects(gboolean enable);
 
+int
+camera_ui2_get_gconf_storage_device();
+
+int
+camera_ui2_get_gconf_video_mic_mode();
+
 #endif

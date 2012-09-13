@@ -435,10 +435,8 @@ void image_into_strips(TIFF_LONG width, TIFF_LONG height, TIFF_SHORT bits_per_sa
 int
 write_image(FILE* output, guint8* data, guint max)
 {
-  int i=0;
-  int max4 = max/4;
   //  g_print("written from %d %d\n", data, fwrite(data+i*(max/8), 8, max/8, output));  
-  g_print("written from %d %d\n", data, fwrite(data, 1, max, output));  
+  g_print("written from 0x%p %d\n", data, fwrite(data, 1, max, output));  
   if(ferror(output))
   {
     perror("fehler");

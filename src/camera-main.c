@@ -2,6 +2,7 @@
 #include "camera-ui2-window.h"
 #include "camera-settings.h"
 #include "camera-interface.h"
+#include "dbus-helper.h"
 
 #include <libosso.h>
 #include <libhal.h>

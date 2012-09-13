@@ -61,7 +61,7 @@ location_to_address_cb(NavigationProvider *provider,
   }
   else if(address != NULL)
   {
-    g_print("address %d\n", address);
+    g_print("address 0x%p\n", address);
     g_print("address %s %s %s\n", address->country, address->town, address->suburb);
     helper->address = address;
   }

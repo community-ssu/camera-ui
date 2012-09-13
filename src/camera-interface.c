@@ -20,8 +20,10 @@
 #include <gst/interfaces/photography.h>
 #include <gdigicam/gst-camerabin/gdigicam-camerabin.h>
 #include <gdigicam/gdigicam-manager.h>
+#include <gdigicam/gdigicam-util.h>
 #include <glib/gstdio.h>
 #include <linux/videodev2.h>
+#include <sys/ioctl.h>
 
 #include <string.h>
 static const gchar* VIDEO_SOURCE = "v4l2camsrc";
@@ -218,8 +220,8 @@ calc_hd_bitrate(GstPad * pad)
   caps = gst_pad_get_negotiated_caps(pad);
   str = gst_caps_get_structure (caps, 0);
 
-  if(gst_structure_get_int (str, "height", &height) &&
-     gst_structure_get_int (str, "width", &width) &&
+  if(gst_structure_get_uint (str, "height", &height) &&
+     gst_structure_get_uint (str, "width", &width) &&
       (g_framerate = gst_structure_get_value (str, "framerate")))
   {
 
@@ -249,10 +251,8 @@ _handle_bus_message_func(GDigicamManager *manager,
 			 gpointer user_data)
 {
   const GstStructure *structure = NULL;
-  const GstMessage* msg;
   GstElement* bin = NULL;
 
-  msg = GST_MESSAGE(user_data);
   switch(GST_MESSAGE_TYPE(GST_MESSAGE(user_data)))
   {
   case GST_MESSAGE_STATE_CHANGED:
@@ -281,7 +281,8 @@ _handle_bus_message_func(GDigicamManager *manager,
 		break;
 	      case G_DIGICAM_MODE_VIDEO:
 		g_object_set(bin, "mode", 1, NULL);
-	    
+		  break;
+	      default:
 		  break;
 	    }
 	  }
@@ -354,6 +355,8 @@ _handle_bus_message_func(GDigicamManager *manager,
 		  g_debug("Unable to get videoenc element\n");
 		break;
 	      }
+	      default:
+		  break;
 	    }
 	  }
 	}
@@ -408,6 +411,8 @@ _handle_bus_message_func(GDigicamManager *manager,
       }
     }
     break;
+  default:
+    break;
   }
   return TRUE;
 }
@@ -415,7 +420,7 @@ _handle_bus_message_func(GDigicamManager *manager,
 /*
   debug helper
  */
-static
+static void
 _print_result_message(gboolean result, GError** error, const gchar* operation)
 {
   if(!result) 
@@ -1166,6 +1171,8 @@ camera_interface_enable_preview(CameraInterface* camera_interface, gboolean enab
 
   g_slice_free(GDigicamCamerabinPreviewHelper,
 		helper);
+
+  return TRUE;
 }
 
 gdouble

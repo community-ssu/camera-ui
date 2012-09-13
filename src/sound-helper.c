@@ -29,6 +29,7 @@ struct _SoundPlayerHelper
 };
 
 
+#if 0
 static void
 sound_done(ca_context *c,
 	   uint32_t id,
@@ -37,6 +38,7 @@ sound_done(ca_context *c,
 {
   // ???
 }
+#endif
 
 static void
 profile_active_cb(const char *profile, 

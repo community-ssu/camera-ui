@@ -67,4 +67,7 @@ dbus_helper_start_viewer(osso_context_t* osso, const gchar* media_file);
 void
 dbus_helper_start_mime_viewer(osso_context_t* osso, const gchar* media_file, const gchar* mime_type);
 
+gboolean
+dbus_helper_register_top_application_callback(osso_context_t* osso, gpointer user_data);
+
 #endif
