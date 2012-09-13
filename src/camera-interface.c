@@ -768,7 +768,7 @@ camera_interface_set_video_resolution(CameraInterface* camera_interface, CamVide
     helper->resolution = G_DIGICAM_RESOLUTION_HD;
     helper->aspect_ratio = G_DIGICAM_ASPECTRATIO_16X9;
   }
-  _set_zoom_level(camera_interface->manager,1.0,&digital);
+  _set_zoom_level(camera_interface->manager,1.0,digital);
   g_digicam_manager_stop_bin(camera_interface->manager, &error);
   gboolean result = g_digicam_manager_set_aspect_ratio_resolution(camera_interface->manager,
 								  helper->aspect_ratio,
