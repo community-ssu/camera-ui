@@ -80,18 +80,17 @@ _find_unused_filename(const gchar* path,
   int trials = 0;
   struct stat stat_buf;
   int stat_ret = 0;
-
   do {
     guint last_media_id = camera_ui2_get_gconf_last_media_id();
     trials++;
 
     if(is_video)
-      filename = g_strdup_printf("%s/DCIM/%s_%03d.mp4", 
+      filename = g_strdup_printf("%s/%s_%03d.mp4", 
 				 path,
 				 time_prefix,
 				 last_media_id+1);
     else
-      filename = g_strdup_printf("%s/DCIM/%s_%03d.jpg",
+      filename = g_strdup_printf("%s/%s_%03d.jpg",
 				 path,
 				 time_prefix,
 				 last_media_id+1);
@@ -125,14 +124,18 @@ storage_helper_create_filename(CamStorageDevice storage_device,
       storage_device == CAM_STORAGE_EXTERN_UNAVAILABLE) &&
      camera_ui2_internal_mmc_gconf_available())
   {
-    path = g_strdup(g_getenv("INTERNAL_MMC_MOUNTPOINT"));
+    path = g_strdup(hildon_get_user_named_dir("NOKIA_CAMERA_DIR"));
+    if(!path)
+      path = g_strdup(g_getenv("INTERNAL_MMC_MOUNTPOINT"));
   }
   else if(storage_device == CAM_STORAGE_EXTERN &&
 	  camera_ui2_mmc_gconf_available())
   {
-    path = g_strdup(g_getenv("MMC_MOUNTPOINT"));
+    path = g_strdup(hildon_get_user_named_dir("NOKIA_MMC_CAMERA_DIR"));
+    if(!path)
+      path = g_strdup(g_getenv("MMC_MOUNTPOINT"));
   }
-  if(path == NULL)
+  if(path == NULL || g_mkdir_with_parents(path, 0755) != 0)
   {
     hildon_banner_show_information(NULL, NULL, dgettext("osso-camera-ui", "camera_ib_no_memory_accessible"));
     return NULL;
