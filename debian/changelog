@@ -1,3 +1,10 @@
+camera-ui (1.1.29.2+0cssu15) unstable; urgency=low
+
+  * get NOKIA_CAMERA_DIR and NOKIA_MMC_CAMERA_DIR for internal and external
+    storage location
+
+ -- Ivaylo Dimitrov <freemangordon@abv.bg>  Wed, 26 Sep 2012 20:38:41 +0200
+
 camera-ui (1.1.29.2+0cssu14) unstable; urgency=low
 
   * Fix packaging.
