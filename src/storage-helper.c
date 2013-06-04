@@ -126,14 +126,14 @@ storage_helper_create_filename(CamStorageDevice storage_device,
   {
     path = g_strdup(hildon_get_user_named_dir("NOKIA_CAMERA_DIR"));
     if(!path)
-      path = g_strdup(g_getenv("INTERNAL_MMC_MOUNTPOINT"));
+      path = g_strdup_printf("%s/DCIM", g_getenv("INTERNAL_MMC_MOUNTPOINT"));
   }
   else if(storage_device == CAM_STORAGE_EXTERN &&
 	  camera_ui2_mmc_gconf_available())
   {
     path = g_strdup(hildon_get_user_named_dir("NOKIA_MMC_CAMERA_DIR"));
     if(!path)
-      path = g_strdup(g_getenv("MMC_MOUNTPOINT"));
+      path = g_strdup_printf("%s/DCIM", g_getenv("MMC_MOUNTPOINT"));
   }
   if(path == NULL || g_mkdir_with_parents(path, 0755) != 0)
   {
