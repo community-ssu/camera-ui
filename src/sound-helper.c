@@ -46,10 +46,10 @@ profile_active_cb(const char *profile,
 		  const char *val, 
 		  const char *type, void *user_data)
 {
-  g_warning("profile %s\n", profile);
-  g_warning("key %s\n", key);
-  g_warning("value %s\n", val);
-  g_warning("type %s\n", type);
+//  g_warning("profile %s\n", profile);
+//  g_warning("key %s\n", key);
+//  g_warning("value %s\n", val);
+//  g_warning("type %s\n", type);
   if(g_strcmp0(key, "system.sound.level") == 0)
   {
     ((SoundPlayerHelper*)user_data)->enabled =
