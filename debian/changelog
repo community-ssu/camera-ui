@@ -1,3 +1,9 @@
+camera-ui (1.1.29.2+0cssu17+thumb0) unstable; urgency=low
+
+  * Thumb2 compile
+
+ -- Ivaylo Dimitrov <freemangordon@abv.bg>  Sun, 29 Dec 2013 19:11:45 +0200
+
 camera-ui (1.1.29.2+0cssu17) unstable; urgency=low
 
   * Do not print GLIB WARNING messages to syslog when changing profile
