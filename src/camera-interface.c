@@ -205,40 +205,46 @@ _add_tag_listener(CameraInterface* camera_interface)
   Coefficients retrieved from gst-dsp and adopted for HD codecs.
 */
 static guint
-calc_hd_bitrate(GstPad * pad)
+_hd_calc_bitrate(GstPad *pad)
 {
-  float bits_per_pixel = 0.2, scale;
-  guint ref_bitrate,bitrate = 0;
+  float bits_per_pixel = 0.2;
+  float scale;
+  guint ref_bitrate;
   const guint reference_fps = 15;
   const float quality = 2.8;
-  guint height = 0, width = 0;
+  gint height = 0;
+  gint width = 0;
   float framerate=0;
   GstCaps *caps;
   GstStructure *str;
-  const GValue *g_framerate = NULL;
+  const GValue *v = NULL;
+  guint rv = 0;
 
   caps = gst_pad_get_negotiated_caps(pad);
-  str = gst_caps_get_structure (caps, 0);
-
-  if(gst_structure_get_uint (str, "height", &height) &&
-     gst_structure_get_uint (str, "width", &width) &&
-      (g_framerate = gst_structure_get_value (str, "framerate")))
+  if (!caps)
   {
-
-    framerate = ((float)gst_value_get_fraction_numerator(g_framerate))/
-		(float)gst_value_get_fraction_denominator(g_framerate);
-
-    ref_bitrate = (width * height) / bits_per_pixel;
-
-    scale = 1 + ((float) framerate / reference_fps - 1) * quality;
-
-    bitrate = ref_bitrate * scale;
-    g_debug("Setting bitrate = %.2f for width=%u,height=%u,framerate=%.2f\n",(float)bitrate,width,height,framerate);
+    g_warning("could not get caps of pad %s\n", GST_PAD_NAME(pad));
+    return 0;
   }
-  else
-    g_debug("Unable to get src pad caps\n");
 
-  return bitrate;
+  str = gst_caps_get_structure(caps, 0);
+
+  g_return_val_if_fail(gst_structure_get_int (str, "width", &width) &&
+                       gst_structure_get_int (str, "height", &height), 0);
+
+  v = gst_structure_get_value (str, "framerate");
+  g_return_val_if_fail(GST_VALUE_HOLDS_FRACTION(v), 0);
+
+  framerate = ((float)gst_value_get_fraction_numerator(v)) /
+      (float)gst_value_get_fraction_denominator(v);
+
+  ref_bitrate = (width * height) / bits_per_pixel;
+  scale = 1 + ((float) framerate / reference_fps - 1) * quality;
+  rv = ref_bitrate * scale;
+  g_debug("Setting bitrate = %.2f for width=%u,height=%u,framerate=%.2f\n",
+	  (float)rv, width, height, framerate);
+
+  return rv;
 }
 
 /*
@@ -251,28 +257,26 @@ _handle_bus_message_func(GDigicamManager *manager,
 			 gpointer user_data)
 {
   const GstStructure *structure = NULL;
-  GstElement* bin = NULL;
+  GstElement *bin = NULL;
 
   switch(GST_MESSAGE_TYPE(GST_MESSAGE(user_data)))
   {
   case GST_MESSAGE_STATE_CHANGED:
-    if(g_digicam_manager_get_gstreamer_bin(manager,
-					   &bin,
-					   NULL))
+    if(g_digicam_manager_get_gstreamer_bin(manager, &bin, NULL))
     {
       if(GST_ELEMENT(GST_MESSAGE_SRC(GST_MESSAGE(user_data))) == bin)
       {
 	GstState old = 0;
 	GstState new = 0;
 	GstState pending = 0;
+
 	gst_message_parse_state_changed(GST_MESSAGE(user_data),
 					&old, &new, &pending);
 	if(GST_STATE_PLAYING == new)
 	{
 	  GDigicamMode mode;
-	  if(g_digicam_manager_get_mode(manager,
-					&mode,
-					NULL))
+
+	  if(g_digicam_manager_get_mode(manager, &mode, NULL))
 	  {
 	    switch(mode)
 	    {
@@ -290,69 +294,69 @@ _handle_bus_message_func(GDigicamManager *manager,
 	else if(GST_STATE_READY == new)
 	{
 	  GDigicamMode mode;
-	  if(g_digicam_manager_get_mode(manager,
-					&mode,
-					NULL))
+
+	  if(g_digicam_manager_get_mode(manager, &mode, NULL))
 	  {
 	    switch(mode)
 	    {
 	      case G_DIGICAM_MODE_VIDEO:
 	      {
-		GstElement* videoenc = 0;
-		GstElement* videosrc = 0;
+		GstElement *videoenc = 0;
+		GstElement *videosrc = 0;
 
-		g_object_get(bin,"videoenc",&videoenc,NULL);
+		g_object_get(bin,"videoenc", &videoenc, NULL);
 		if(videoenc)
 		{
-		  g_object_get(bin,"videosrc",&videosrc,NULL);
+		  g_object_get(bin, "videosrc", &videosrc, NULL);
 		  if(videosrc)
 		  {
-		    GstPad * srcpad=gst_element_get_static_pad (videosrc,"src");
+		    GstPad *srcpad=gst_element_get_static_pad (videosrc, "src");
+
 		    if(srcpad)
 		    {
-		      gst_object_unref (GST_OBJECT (srcpad));
-		      gchar * videoenc_name = NULL;
-		      g_object_get(videoenc,"name",&videoenc_name,NULL);
+		      gchar *videoenc_name = NULL;
+
+		      g_object_get(videoenc, "name", &videoenc_name, NULL);
 		      if(videoenc_name)
 		      {
-			if(g_str_has_prefix(videoenc_name,"dsphdmp4venc"))
+			if (g_str_has_prefix(videoenc_name, "dsphdmp4venc"))
 			{
-			  guint bitrate = calc_hd_bitrate(srcpad);
-			  g_object_set(videoenc,
-				       "intra-refresh",1,
-				       NULL);
-			  g_object_set(videoenc,
-				       "max-bitrate",bitrate,
-				       NULL);
-			  g_object_set(videoenc,
-				       "bitrate",bitrate,
-				       NULL);
+			  guint bitrate = _hd_calc_bitrate(srcpad);
+			  if (bitrate)
+			  {
+			    g_object_set(videoenc,
+					 "intra-refresh", 1,
+					 "max-bitrate", bitrate,
+					 "bitrate", bitrate,
+					 NULL);
+			  }
 			}
 			else
-			  g_object_set(videoenc,
-				       "bitrate",0,
-				       NULL);
+			  g_object_set(videoenc, "bitrate", 0, NULL);
+
 			g_free (videoenc_name);
 		      }
 		      else
 		      {
 			g_debug("Unable to get videoenc name\n");
-			g_object_set(videoenc,
-				     "bitrate",0,
-				     NULL);
+			g_object_set(videoenc, "bitrate", 0, NULL);
 		      }
+
+		      gst_object_unref (GST_OBJECT (srcpad));
 		    }
 		    else
 		      g_debug("Unable to get src pad\n");
+
 		    gst_object_unref(videosrc);
 		  }
 		  else
 		    g_debug("Unable to get videosrc element\n");
-		  gst_object_unref(videoenc);
 
+		  gst_object_unref(videoenc);
 		}
 		else
 		  g_debug("Unable to get videoenc element\n");
+
 		break;
 	      }
 	      default:
