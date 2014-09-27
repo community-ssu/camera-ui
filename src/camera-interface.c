@@ -1,17 +1,17 @@
 /*
  *  camera ui2
  *  Copyright (C) 2010 Nicolai Hess
- *  
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version.
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -84,10 +84,10 @@ _had_capture_data(GstTagList* tag_list, CameraInterface* camera_interface)
   guint gain = 0;
   const GValue* value = NULL;
 
-  if(gst_tag_list_get_int(tag_list, 
-			  "capture-iso-speed-ratings", 
+  if(gst_tag_list_get_int(tag_list,
+			  "capture-iso-speed-ratings",
 			  &iso_speed))
-  {  
+  {
     camera_interface->camera_capture_data->capture_iso_speed = iso_speed;
     got_data = TRUE;
   }
@@ -115,10 +115,10 @@ _had_capture_data(GstTagList* tag_list, CameraInterface* camera_interface)
     camera_interface->camera_capture_data->capture_exposure_time_d = denominator;
     got_data = TRUE;
   }
-  if(gst_tag_list_get_uint(tag_list, 
-		       "capture-flash", 
+  if(gst_tag_list_get_uint(tag_list,
+		       "capture-flash",
 		       &flash))
-  {  
+  {
     camera_interface->camera_capture_data->capture_flash = flash;
     got_data = TRUE;
   }
@@ -138,10 +138,10 @@ _had_capture_data(GstTagList* tag_list, CameraInterface* camera_interface)
     camera_interface->camera_capture_data->capture_focal_length_d = denominator;
     got_data = TRUE;
   }
-  if(gst_tag_list_get_uint(tag_list, 
-			   "capture-gain", 
+  if(gst_tag_list_get_uint(tag_list,
+			   "capture-gain",
 			   &gain))
-  {  
+  {
     camera_interface->camera_capture_data->capture_gain = gain;
     got_data = TRUE;
   }
@@ -170,7 +170,7 @@ _tag_event_cb(GstPad* pad,
 	      gpointer user_data)
 {
   if(GST_EVENT_TYPE(event) == GST_EVENT_TAG)
-  { 
+  {
     GstTagList* taglist = NULL;
     gst_event_parse_tag (event, &taglist);
     if(taglist && _had_capture_data(taglist, (CameraInterface*)user_data))
@@ -193,7 +193,7 @@ _add_tag_listener(CameraInterface* camera_interface)
   GstBin* bin = _get_camerabin(camera_interface);
   GstElement* tagger = gst_bin_get_by_name(bin, "v4l2camsrc0");
   GstPad* pad = gst_element_get_pad(tagger,"src");
-  camera_interface->event_probe_id = 
+  camera_interface->event_probe_id =
     gst_pad_add_event_probe(pad, G_CALLBACK(_tag_event_cb), camera_interface);
   gst_object_unref(pad);
   gst_object_unref(tagger);
@@ -201,7 +201,7 @@ _add_tag_listener(CameraInterface* camera_interface)
 }
 
 /*
-  Can be used to calculate bitrate based on resolution and target quality.  
+  Can be used to calculate bitrate based on resolution and target quality.
   Coefficients retrieved from gst-dsp and adopted for HD codecs.
 */
 static guint
@@ -214,7 +214,7 @@ calc_hd_bitrate(GstPad * pad)
   guint height = 0, width = 0;
   float framerate=0;
   GstCaps *caps;
-  GstStructure *str; 
+  GstStructure *str;
   const GValue *g_framerate = NULL;
 
   caps = gst_pad_get_negotiated_caps(pad);
@@ -226,12 +226,12 @@ calc_hd_bitrate(GstPad * pad)
   {
 
     framerate = ((float)gst_value_get_fraction_numerator(g_framerate))/
-                (float)gst_value_get_fraction_denominator(g_framerate);
+		(float)gst_value_get_fraction_denominator(g_framerate);
 
     ref_bitrate = (width * height) / bits_per_pixel;
-    
+
     scale = 1 + ((float) framerate / reference_fps - 1) * quality;
-    
+
     bitrate = ref_bitrate * scale;
     g_debug("Setting bitrate = %.2f for width=%u,height=%u,framerate=%.2f\n",(float)bitrate,width,height,framerate);
   }
@@ -300,7 +300,7 @@ _handle_bus_message_func(GDigicamManager *manager,
 	      {
 		GstElement* videoenc = 0;
 		GstElement* videosrc = 0;
-		
+
 		g_object_get(bin,"videoenc",&videoenc,NULL);
 		if(videoenc)
 		{
@@ -332,7 +332,7 @@ _handle_bus_message_func(GDigicamManager *manager,
 			  g_object_set(videoenc,
 				       "bitrate",0,
 				       NULL);
-			g_free (videoenc_name);			
+			g_free (videoenc_name);
 		      }
 		      else
 		      {
@@ -378,7 +378,7 @@ _handle_bus_message_func(GDigicamManager *manager,
       {
       case GST_PHOTOGRAPHY_FOCUS_STATUS_FAIL:
 	g_signal_emit_by_name(manager,
-			      "focus-done", 
+			      "focus-done",
 			      G_DIGICAM_FOCUSMODESTATUS_UNABLETOREACH);
 	break;
       case GST_PHOTOGRAPHY_FOCUS_STATUS_SUCCESS:
@@ -404,9 +404,9 @@ _handle_bus_message_func(GDigicamManager *manager,
 	if(image)
 	{
 	  if(raw_image_buffer)
-          {
+	  {
 	    memcpy(raw_image_buffer,GST_BUFFER_DATA(gst_value_get_buffer(image)),(2576*1960*2));
-          }
+	  }
 	}
       }
     }
@@ -423,19 +423,19 @@ _handle_bus_message_func(GDigicamManager *manager,
 static void
 _print_result_message(gboolean result, GError** error, const gchar* operation)
 {
-  if(!result) 
+  if(!result)
   {
-    if((*error) != NULL) 
+    if((*error) != NULL)
     {
       g_warning("Error %s Value: %s\n", operation, (*error)->message);
       g_error_free(*error);
-    } 
-    else 
+    }
+    else
     {
       g_warning("Error setting the %s "
 		"Value: Internal error !!!\n",operation);
     }
-  } 
+  }
   /* else  */
   /* { */
   /*   g_warning("%s successfully.\n", operation); */
@@ -446,7 +446,7 @@ static
 GDigicamDescriptor*
 _new_g_digicam_camerabin_descriptor(GstElement* bin)
 {
-  GDigicamDescriptor* descriptor = 
+  GDigicamDescriptor* descriptor =
     g_digicam_camerabin_descriptor_new(bin);
   // guess values
   descriptor->max_zoom_macro_enabled  = 6;
@@ -557,7 +557,7 @@ create_camera_interface()
   GDigicamManager* manager = NULL;
   GDigicamDescriptor* descriptor = NULL;
   GstElement* bin = NULL;
-  
+
   GError* error = NULL;
   gint colorkey;
   g_digicam_init(0, NULL);
@@ -567,7 +567,7 @@ create_camera_interface()
     g_debug("can not create gdigicam manager\n");
     return NULL;
   }
-  
+
   bin = g_digicam_camerabin_element_new(VIDEO_SOURCE,
 					VIDEO_ENC,
 					VIDEO_MUX,
@@ -719,7 +719,7 @@ camera_interface_set_still_resolution(CameraInterface* camera_interface, CamStil
     helper->resolution = G_DIGICAM_RESOLUTION_HIGH;
     helper->aspect_ratio = G_DIGICAM_ASPECTRATIO_16X9;
   }
-  
+
   gboolean result = g_digicam_manager_set_aspect_ratio_resolution(camera_interface->manager,
 								  helper->aspect_ratio,
 								  helper->resolution,
@@ -811,7 +811,7 @@ camera_interface_set_white_balance_mode(CameraInterface* camera_interface, CamWh
   case CAM_WHITE_BALANCE_INCANDESCENT :
     helper->wb_mode = G_DIGICAM_WHITEBALANCEMODE_INCANDESCENT;
     break;
-  }    
+  }
   result = g_digicam_manager_set_white_balance_mode(camera_interface->manager,
 						    helper->wb_mode,
 						    0,
@@ -845,9 +845,9 @@ camera_interface_set_flash_mode(CameraInterface* camera_interface, CamFlashMode 
     break;
   }
   result = g_digicam_manager_set_flash_mode(camera_interface->manager,
-                                            helper->flash_mode,
-                                            &error, 
-                                            helper);
+					    helper->flash_mode,
+					    &error,
+					    helper);
   _print_result_message(result, &error, " set flash mode");
   g_slice_free(GDigicamCamerabinFlashModeHelper, helper);
   return result;
@@ -868,23 +868,23 @@ camera_interface_set_iso_level(CameraInterface* camera_interface, CamIsoLevel is
     helper->iso_value = 0;
     break;
   case CAM_ISO_LEVEL_100:
-    helper->iso_sensitivity_mode = G_DIGICAM_ISOSENSITIVITYMODE_MANUAL;    
+    helper->iso_sensitivity_mode = G_DIGICAM_ISOSENSITIVITYMODE_MANUAL;
     helper->iso_value = 100;
     break;
   case CAM_ISO_LEVEL_200:
-    helper->iso_sensitivity_mode = G_DIGICAM_ISOSENSITIVITYMODE_MANUAL;    
+    helper->iso_sensitivity_mode = G_DIGICAM_ISOSENSITIVITYMODE_MANUAL;
     helper->iso_value = 200;
     break;
    case CAM_ISO_LEVEL_400:
-    helper->iso_sensitivity_mode = G_DIGICAM_ISOSENSITIVITYMODE_MANUAL;    
+    helper->iso_sensitivity_mode = G_DIGICAM_ISOSENSITIVITYMODE_MANUAL;
     helper->iso_value = 400;
     break;
    case CAM_ISO_LEVEL_800:
-    helper->iso_sensitivity_mode = G_DIGICAM_ISOSENSITIVITYMODE_MANUAL;    
+    helper->iso_sensitivity_mode = G_DIGICAM_ISOSENSITIVITYMODE_MANUAL;
     helper->iso_value = 800;
     break;
    case CAM_ISO_LEVEL_1600:
-    helper->iso_sensitivity_mode = G_DIGICAM_ISOSENSITIVITYMODE_MANUAL;    
+    helper->iso_sensitivity_mode = G_DIGICAM_ISOSENSITIVITYMODE_MANUAL;
     helper->iso_value = 1600;
     break;
   }
@@ -905,7 +905,7 @@ camera_interface_set_exposure_comp(CameraInterface* camera_interface,  CamExposu
   GDigicamCamerabinExposureCompHelper *helper = NULL;
   GError *error = NULL;
   gboolean result = FALSE;
-  
+
   /* Create operation helper. */
   gdouble exposure_comp = 0.0;
   switch(exposure_level)
@@ -940,7 +940,7 @@ camera_interface_set_exposure_comp(CameraInterface* camera_interface,  CamExposu
   }
   helper = g_slice_new(GDigicamCamerabinExposureCompHelper);
   helper->exposure_comp = exposure_comp;
-  
+
   result = g_digicam_manager_set_exposure_comp(camera_interface->manager,
 					       helper->exposure_comp,
 					       &error,
@@ -985,7 +985,7 @@ camera_interface_open_viewfinder(CameraInterface* camera_interface, gulong viewf
   GError* error = NULL;
   camera_interface->viewfinder_window_id = viewfinder_window_id;
 
-  gboolean result = 
+  gboolean result =
     g_digicam_manager_play_bin(camera_interface->manager, viewfinder_window_id, &error);
   {
     GstElement* bin = NULL;
@@ -1023,7 +1023,7 @@ camera_interface_close_viewfinder(CameraInterface* camera_interface)
 {
   GError* error = NULL;
   _remove_tag_listener((CameraInterface*)camera_interface);
-  gboolean result = 
+  gboolean result =
     g_digicam_manager_stop_bin(camera_interface->manager, &error);
 
   _print_result_message(result, &error, " close view finder ");
@@ -1092,7 +1092,7 @@ camera_interface_start_recording(CameraInterface* camera_interface, capture_data
   helper->metadata->city_name = g_strdup(capture_data.city);
   helper->metadata->suburb_name = g_strdup(capture_data.suburb);
   result = g_digicam_manager_start_recording_video(camera_interface->manager,
-						   &error, 
+						   &error,
 						  helper);
   _print_result_message(result, &error, " start recording ");
   g_slice_free(GDigicamCamerabinMetadata,
@@ -1109,7 +1109,7 @@ camera_interface_stop_recording(CameraInterface* camera_interface)
   gboolean result;
   helper = g_slice_new(GDigicamCamerabinVideoHelper);
   result = g_digicam_manager_finish_recording_video(camera_interface->manager,
-						    &error, 
+						    &error,
 						    helper);
   _print_result_message(result, &error, " stop recording ");
   g_slice_free(GDigicamCamerabinVideoHelper, helper);
@@ -1127,7 +1127,7 @@ camera_interface_pause_recording(CameraInterface* camera_interface)
   helper->resume = FALSE;
   result = g_digicam_manager_pause_recording_video(camera_interface->manager,
 						   helper->resume,
-						   &error, 
+						   &error,
 						   helper);
   _print_result_message(result, &error, " pause recording ");
   g_slice_free(GDigicamCamerabinVideoHelper, helper);
@@ -1144,7 +1144,7 @@ camera_interface_resume_recording(CameraInterface* camera_interface)
   helper->resume = TRUE;
   result = g_digicam_manager_pause_recording_video(camera_interface->manager,
 						   helper->resume,
-						   &error, 
+						   &error,
 						   helper);
   _print_result_message(result, &error, " resume recording ");
   g_slice_free(GDigicamCamerabinVideoHelper, helper);
@@ -1261,7 +1261,7 @@ camera_interface_set_focus_mode(CameraInterface* camera_interface, gboolean star
 					    helper->macro_enabled,
 					    &error,
 					    helper);
-  
+
   _print_result_message(result, &error, " set focus mode ");
   g_slice_free(GDigicamCamerabinFocusModeHelper,
 	       helper);
@@ -1357,7 +1357,7 @@ camera_interface_frontcamera_mode(CameraInterface* camera_interface)
       g_object_set(videosrc, "device", "/dev/video1", NULL);
       gst_object_unref(videosrc);
       GError* error = NULL;
-      gboolean result = 
+      gboolean result =
 	g_digicam_manager_stop_bin(camera_interface->manager, &error) &&
 	g_digicam_manager_play_bin(camera_interface->manager, camera_interface->viewfinder_window_id, &error);
       gst_object_unref(bin);
@@ -1381,7 +1381,7 @@ camera_interface_backcamera_mode(CameraInterface* camera_interface)
       g_object_set(videosrc, "device", "/dev/video0", NULL);
       gst_object_unref(videosrc);
       gst_object_unref(bin);
-      return 
+      return
 	g_digicam_manager_stop_bin(camera_interface->manager, NULL) &&
 	g_digicam_manager_play_bin(camera_interface->manager, camera_interface->viewfinder_window_id, NULL);
     }
