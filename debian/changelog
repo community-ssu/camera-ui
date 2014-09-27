@@ -1,3 +1,10 @@
+camera-ui (1.1.29.2+0cssu18) unstable; urgency=low
+
+  * fix HD codecs bitrate calculation
+  * do not use unreffed object
+
+ -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Tue, 27 Sep 2014 17:02:22 +0300
+
 camera-ui (1.1.29.2+0cssu17+thumb0) unstable; urgency=low
 
   * Thumb2 compile
